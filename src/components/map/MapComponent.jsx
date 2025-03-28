@@ -6,21 +6,33 @@
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import PropTypes from 'prop-types';
 import 'leaflet/dist/leaflet.css';
-import '../../styles/map.css';
+import '../../styles/map/map.css';
 import ChangeMapView from './ChangeMapView';
 import RoutePolylines from './RoutePolylines';
 import RouteStartMarker from './RouteStartMarker';
 import { CITY_CENTERS } from '../../constants/mapConstants';
 
-function MapComponent({ currentCity, routes, selectedRoute, onRouteSelect }) {
+function MapComponent({ 
+  currentCity, 
+  routes, 
+  selectedRoute, 
+  onRouteSelect,
+  showAllRoutes 
+}) {
   // Получаем координаты центра и масштаб для выбранного города
   const { center, zoom } = CITY_CENTERS[currentCity] || CITY_CENTERS.edinet;
 
   return (
     <div className="map-container">
-      <MapContainer center={center} zoom={zoom} scrollWheelZoom={true} zoomControl={false}>
+      <MapContainer 
+        center={center} 
+        zoom={zoom} 
+        scrollWheelZoom={true} 
+        zoomControl={false}
+      >
         <ChangeMapView center={center} zoom={zoom} />
-				<ZoomControl position="topright" />
+        <ZoomControl position="topright" />
+        
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -29,10 +41,13 @@ function MapComponent({ currentCity, routes, selectedRoute, onRouteSelect }) {
         <RoutePolylines 
           routes={routes} 
           selectedRoute={selectedRoute} 
-          onRouteSelect={onRouteSelect} 
+          onRouteSelect={onRouteSelect}
+          showAllRoutes={showAllRoutes}
         />
         
-        <RouteStartMarker route={selectedRoute} />
+        {selectedRoute && !showAllRoutes && (
+          <RouteStartMarker route={selectedRoute} />
+        )}
       </MapContainer>
     </div>
   );
@@ -42,7 +57,8 @@ MapComponent.propTypes = {
   currentCity: PropTypes.string.isRequired,
   routes: PropTypes.array.isRequired,
   selectedRoute: PropTypes.object,
-  onRouteSelect: PropTypes.func.isRequired
+  onRouteSelect: PropTypes.func.isRequired,
+  showAllRoutes: PropTypes.bool.isRequired
 };
 
 export default MapComponent;

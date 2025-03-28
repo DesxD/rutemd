@@ -15,6 +15,8 @@ function App() {
   const { t, i18n } = useTranslation();
   // На больших экранах сайдбар всегда открыт, на мобильных - зависит от состояния
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showAllRoutes, setShowAllRoutes] = useState(false);
+  
   const { 
     routes, 
     selectedRoute, 
@@ -36,6 +38,11 @@ function App() {
     }
   };
 
+  // Обработчик переключения режима отображения маршрутов
+  const toggleShowAllRoutes = () => {
+    setShowAllRoutes(!showAllRoutes);
+  };
+
   return (
     <div className="app">
       {/* Кнопка-гамбургер для мобильных устройств */}
@@ -51,6 +58,8 @@ function App() {
         selectedRoute={selectedRoute}
         onRouteSelect={selectRoute}
         isOpen={isSidebarOpen}
+        showAllRoutes={showAllRoutes}
+        onToggleShowAllRoutes={toggleShowAllRoutes}
       />
       
       <MapComponent 
@@ -58,6 +67,7 @@ function App() {
         routes={routes}
         selectedRoute={selectedRoute}
         onRouteSelect={selectRoute}
+        showAllRoutes={showAllRoutes}
       />
     </div>
   );

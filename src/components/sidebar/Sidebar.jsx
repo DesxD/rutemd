@@ -3,6 +3,7 @@
  * Содержит элементы управления: выбор города и маршрута
  */
 
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import CitySelector from '../selectors/CitySelector';
@@ -15,7 +16,9 @@ function Sidebar({
   routes, 
   selectedRoute, 
   onRouteSelect,
-  isOpen
+  isOpen,
+  onToggleShowAllRoutes,
+  showAllRoutes
 }) {
   const { t } = useTranslation();
 
@@ -40,6 +43,17 @@ function Sidebar({
             onRouteSelect={onRouteSelect} 
           />
         </div>
+
+        <div className="sidebar-section">
+          <label className="toggle-container">
+            <input 
+              type="checkbox" 
+              checked={showAllRoutes} 
+              onChange={onToggleShowAllRoutes}
+            />
+            <span className="toggle-label">{t('showAllRoutes')}</span>
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -51,7 +65,9 @@ Sidebar.propTypes = {
   routes: PropTypes.array.isRequired,
   selectedRoute: PropTypes.object,
   onRouteSelect: PropTypes.func.isRequired,
-  isOpen: PropTypes.bool.isRequired
+  isOpen: PropTypes.bool.isRequired,
+  onToggleShowAllRoutes: PropTypes.func.isRequired,
+  showAllRoutes: PropTypes.bool.isRequired
 };
 
 export default Sidebar;

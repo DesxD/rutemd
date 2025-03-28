@@ -112,3 +112,20 @@
     padding-top: 60px;
   }
 }
+
+/* Добавим стили для переключателя отображения всех маршрутов */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.toggle-container input {
+  margin-right: 8px;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  color: #333;
+}
