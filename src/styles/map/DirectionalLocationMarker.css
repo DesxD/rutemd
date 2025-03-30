@@ -1,0 +1,50 @@
+/**
+ * Стили для маркера местоположения с уменьшенной и центрированной SVG-стрелкой
+ */
+
+ .user-location-icon-container {
+  width: 40px !important;
+  height: 40px !important;
+  background: none !important;
+  position: relative;
+}
+
+.user-location-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background-color: #ff0b34;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 10; /* Обеспечиваем, что точка поверх стрелки */
+}
+
+/* Стили для SVG стрелки */
+.direction-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Точное центрирование с учетом размера SVG */
+  transform-origin: center center !important;
+  margin-left: -15px; /* Половина ширины SVG */
+  margin-top: -15px; /* Половина высоты SVG */
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.5));
+  transition: transform 0.3s ease; /* Плавное вращение */
+}
+
+/* Пульсирующая анимация для индикатора движения при низкой скорости */
+@keyframes pulse {
+  0% { opacity: 0.8; transform: scale(0.95) rotate(var(--rotation-angle)); }
+  50% { opacity: 1; transform: scale(1.05) rotate(var(--rotation-angle)); }
+  100% { opacity: 0.8; transform: scale(0.95) rotate(var(--rotation-angle)); }
+}
+
+.direction-svg.pulsing {
+  --rotation-angle: 0deg; /* Будет переопределено в атрибуте style */
+  animation: pulse 2s infinite;
+  animation-timing-function: ease-in-out;
+}
