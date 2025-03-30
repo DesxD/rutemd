@@ -1,6 +1,7 @@
 /**
  * Главный компонент приложения
  * Управляет состоянием приложения и объединяет все компоненты
+ * Добавлен провайдер маркеров для поддержки функциональности маркеров
  */
 
 import { useEffect, useState } from 'react';
@@ -10,6 +11,7 @@ import MapComponent from './components/map/MapComponent';
 import Sidebar from './components/sidebar/Sidebar';
 import MenuButton from './components/ui/MenuButton';
 import useRoutes from './hooks/useRoutes';
+import { MarkersProvider } from './contexts/MarkersContext.jsx';
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -44,32 +46,34 @@ function App() {
   };
 
   return (
-    <div className="app">
-      {/* Кнопка-гамбургер для мобильных устройств */}
-      <MenuButton 
-        isOpen={isSidebarOpen}
-        onClick={toggleSidebar}
-      />
-      
-      <Sidebar 
-        currentCity={currentCity}
-        onCityChange={setCurrentCity}
-        routes={routes}
-        selectedRoute={selectedRoute}
-        onRouteSelect={selectRoute}
-        isOpen={isSidebarOpen}
-        showAllRoutes={showAllRoutes}
-        onToggleShowAllRoutes={toggleShowAllRoutes}
-      />
-      
-      <MapComponent 
-        currentCity={currentCity}
-        routes={routes}
-        selectedRoute={selectedRoute}
-        onRouteSelect={selectRoute}
-        showAllRoutes={showAllRoutes}
-      />
-    </div>
+    <MarkersProvider>
+      <div className="app">
+        {/* Кнопка-гамбургер для мобильных устройств */}
+        <MenuButton 
+          isOpen={isSidebarOpen}
+          onClick={toggleSidebar}
+        />
+        
+        <Sidebar 
+          currentCity={currentCity}
+          onCityChange={setCurrentCity}
+          routes={routes}
+          selectedRoute={selectedRoute}
+          onRouteSelect={selectRoute}
+          isOpen={isSidebarOpen}
+          showAllRoutes={showAllRoutes}
+          onToggleShowAllRoutes={toggleShowAllRoutes}
+        />
+        
+        <MapComponent 
+          currentCity={currentCity}
+          routes={routes}
+          selectedRoute={selectedRoute}
+          onRouteSelect={selectRoute}
+          showAllRoutes={showAllRoutes}
+        />
+      </div>
+    </MarkersProvider>
   );
 }
 

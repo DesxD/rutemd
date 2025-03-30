@@ -1,27 +1,35 @@
 /**
  * Основной компонент карты
  * Объединяет все компоненты, связанные с картой, и управляет отображением маршрутов и местоположением
- * Удален маркер начала маршрута
+ * Добавлена поддержка маркеров и их размещения на карте
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, ZoomControl, useMapEvents } from 'react-leaflet';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 import '../../styles/map/map.css';
 import ChangeMapView from './ChangeMapView';
 import RoutePolylines from './RoutePolylines';
-// Импорт маркера начала маршрута удален
-// import RouteStartMarker from './RouteStartMarker';
 import DirectionalLocationMarker from './DirectionalLocationMarker';
 import LocationControl from './LocationControl';
+import RouteMarkers from '../markers/RouteMarkers';
+import MarkerForm from '../markers/MarkerForm';
+import MarkerControl from '../markers/MarkerControl';
+import AudioNavigation from './AudioNavigation';
 import { CITY_CENTERS } from '../../constants/mapConstants';
 import useGeolocation from '../../hooks/useGeolocation';
 import useRouteProximity from '../../hooks/useRouteProximity';
 
-// Компонент для обработки событий карты
-function MapEvents({ onUserMapInteraction, isFollowActive }) {
-  useMapEvents({
+// Компонент для обработки событий карты и режима размещения маркеров
+function MapEvents({ 
+  onUserMapInteraction, 
+  isFollowActive,
+  isMarkerPlacementMode,
+  onMarkerPlace
+}) {
+  const map = useMapEvents({
     dragstart: () => {
       if (isFollowActive) {
         onUserMapInteraction();
@@ -31,6 +39,12 @@ function MapEvents({ onUserMapInteraction, isFollowActive }) {
       if (isFollowActive) {
         onUserMapInteraction();
       }
+    },
+    click: (e) => {
+      if (isMarkerPlacementMode) {
+        const { lat, lng } = e.latlng;
+        onMarkerPlace({ lat, lng });
+      }
     }
   });
   
@@ -39,7 +53,13 @@ function MapEvents({ onUserMapInteraction, isFollowActive }) {
 
 MapEvents.propTypes = {
   onUserMapInteraction: PropTypes.func.isRequired,
-  isFollowActive: PropTypes.bool.isRequired
+  isFollowActive: PropTypes.bool.isRequired,
+  isMarkerPlacementMode: PropTypes.bool,
+  onMarkerPlace: PropTypes.func
+};
+
+MapEvents.defaultProps = {
+  isMarkerPlacementMode: false
 };
 
 function MapComponent({ 
@@ -49,6 +69,7 @@ function MapComponent({
   onRouteSelect,
   showAllRoutes 
 }) {
+  const { t } = useTranslation();
   // Получаем координаты центра и масштаб для выбранного города
   const { center, zoom } = CITY_CENTERS[currentCity] || CITY_CENTERS.edinet;
   const mapRef = useRef(null);
@@ -60,6 +81,13 @@ function MapComponent({
   const [lastUserCenter, setLastUserCenter] = useState(null);
   const [currentViewCenter, setCurrentViewCenter] = useState(center);
   const [currentViewZoom, setCurrentViewZoom] = useState(zoom);
+  
+  // Состояния для управления маркерами
+  const [isMarkerPlacementMode, setIsMarkerPlacementMode] = useState(false);
+  const [showMarkerForm, setShowMarkerForm] = useState(false);
+  const [newMarkerPosition, setNewMarkerPosition] = useState(null);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [isEditingMarker, setIsEditingMarker] = useState(false);
   
   // Получаем данные геолокации
   const { 
@@ -137,6 +165,38 @@ function MapComponent({
     }
   };
   
+  // Обработчик включения/выключения режима размещения маркеров
+  const handleToggleMarkerPlacement = () => {
+    setIsMarkerPlacementMode(!isMarkerPlacementMode);
+    // Сбрасываем состояния при выключении режима
+    if (isMarkerPlacementMode) {
+      setNewMarkerPosition(null);
+      setShowMarkerForm(false);
+    }
+  };
+  
+  // Обработчик размещения маркера на карте
+  const handleMarkerPlace = (position) => {
+    setNewMarkerPosition(position);
+    setShowMarkerForm(true);
+    setIsMarkerPlacementMode(false);
+  };
+  
+  // Обработчик закрытия формы маркера
+  const handleCloseMarkerForm = () => {
+    setShowMarkerForm(false);
+    setNewMarkerPosition(null);
+    setSelectedMarker(null);
+    setIsEditingMarker(false);
+  };
+  
+  // Обработчик выбора маркера для редактирования
+  const handleMarkerClick = (marker) => {
+    setSelectedMarker(marker);
+    setIsEditingMarker(true);
+    setShowMarkerForm(true);
+  };
+  
   // Определяем текущий центр и масштаб для карты
   const effectiveCenter = isLocationActive && lastUserCenter && !isFollowActive
     ? lastUserCenter
@@ -163,6 +223,8 @@ function MapComponent({
         <MapEvents 
           onUserMapInteraction={handleUserMapInteraction}
           isFollowActive={isFollowActive}
+          isMarkerPlacementMode={isMarkerPlacementMode}
+          onMarkerPlace={handleMarkerPlace}
         />
         
         <ZoomControl position="topright" />
@@ -179,11 +241,13 @@ function MapComponent({
           showAllRoutes={showAllRoutes}
         />
         
-        {/* Удален маркер начала маршрута
-        {selectedRoute && !showAllRoutes && (
-          <RouteStartMarker route={selectedRoute} />
-        )}
-        */}
+        {/* Показываем маркеры на карте */}
+        <RouteMarkers 
+          selectedRoute={selectedRoute}
+          showAllRoutes={showAllRoutes}
+          isEditing={false}
+          onMarkerClick={handleMarkerClick}
+        />
         
         {/* Показываем местоположение пользователя с индикатором направления */}
         {position && isLocationActive && (
@@ -192,9 +256,6 @@ function MapComponent({
             followUser={isFollowActive && !userInteractedWithMap}
           />
         )}
-        
-        {/* Здесь в будущем можно добавить отображение ближайших маркеров */}
-        {/* Для этого можно использовать данные из nearestPoint и isOnRoute */}
       </MapContainer>
       
       {/* Кнопки управления геолокацией */}
@@ -205,13 +266,43 @@ function MapComponent({
         isFollowActive={isFollowActive}
       />
       
-      {/* В будущем здесь можно добавить компонент для аудио-навигации */}
-      {/* {position && isLocationActive && selectedRoute && (
-        <AudioNavigation 
-          nearestPoint={nearestPoint}
-          isOnRoute={isOnRoute}
-        />
-      )} */}
+      {/* Кнопки управления маркерами */}
+      <MarkerControl 
+        onToggleMarkerPlacement={handleToggleMarkerPlacement}
+        isMarkerPlacementMode={isMarkerPlacementMode}
+        routes={routes}
+        selectedRoute={selectedRoute}
+        onMarkerSelect={handleMarkerClick}
+      />
+      
+      {/* Форма для создания/редактирования маркера */}
+      {showMarkerForm && (
+        <div className="marker-form-overlay">
+          <div className="marker-form-container">
+            <button 
+              className="close-form-button" 
+              onClick={handleCloseMarkerForm}
+            >
+              &times;
+            </button>
+            <MarkerForm 
+              marker={isEditingMarker ? selectedMarker : null}
+              isEditing={isEditingMarker}
+              position={isEditingMarker ? null : newMarkerPosition}
+              onClose={handleCloseMarkerForm}
+              routes={routes}
+              selectedRoute={selectedRoute}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Индикатор режима размещения маркеров */}
+      {isMarkerPlacementMode && (
+        <div className="marker-placement-indicator">
+          {t('markers.clickMapToPlace')}
+        </div>
+      )}
     </div>
   );
 }
