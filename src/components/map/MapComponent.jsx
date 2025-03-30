@@ -16,7 +16,6 @@ import DirectionalLocationMarker from './DirectionalLocationMarker';
 import LocationControl from './LocationControl';
 import RouteMarkers from '../markers/RouteMarkers';
 import MarkerForm from '../markers/MarkerForm';
-import MarkerControl from '../markers/MarkerControl';
 import AudioNavigation from './AudioNavigation';
 import { CITY_CENTERS } from '../../constants/mapConstants';
 import useGeolocation from '../../hooks/useGeolocation';
@@ -67,7 +66,9 @@ function MapComponent({
   routes, 
   selectedRoute, 
   onRouteSelect,
-  showAllRoutes 
+  showAllRoutes,
+  isMarkerPlacementMode,
+  onToggleMarkerPlacement
 }) {
   const { t } = useTranslation();
   // Получаем координаты центра и масштаб для выбранного города
@@ -82,12 +83,19 @@ function MapComponent({
   const [currentViewCenter, setCurrentViewCenter] = useState(center);
   const [currentViewZoom, setCurrentViewZoom] = useState(zoom);
   
-  // Состояния для управления маркерами
-  const [isMarkerPlacementMode, setIsMarkerPlacementMode] = useState(false);
+  // Состояния для управления маркерами (форма и позиция нового маркера)
   const [showMarkerForm, setShowMarkerForm] = useState(false);
   const [newMarkerPosition, setNewMarkerPosition] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [isEditingMarker, setIsEditingMarker] = useState(false);
+  
+ // Эффект для сброса состояний при изменении режима размещения маркеров
+ useEffect(() => {
+	// Сбрасываем состояния только при выключении режима и если не показываем форму
+	if (!isMarkerPlacementMode && !showMarkerForm) {
+		setNewMarkerPosition(null);
+	}
+}, [isMarkerPlacementMode, showMarkerForm]);
   
   // Получаем данные геолокации
   const { 
@@ -165,22 +173,15 @@ function MapComponent({
     }
   };
   
-  // Обработчик включения/выключения режима размещения маркеров
-  const handleToggleMarkerPlacement = () => {
-    setIsMarkerPlacementMode(!isMarkerPlacementMode);
-    // Сбрасываем состояния при выключении режима
-    if (isMarkerPlacementMode) {
-      setNewMarkerPosition(null);
-      setShowMarkerForm(false);
-    }
-  };
-  
-  // Обработчик размещения маркера на карте
-  const handleMarkerPlace = (position) => {
-    setNewMarkerPosition(position);
-    setShowMarkerForm(true);
-    setIsMarkerPlacementMode(false);
-  };
+// Обработчик размещения маркера на карте
+const handleMarkerPlace = (position) => {
+	setNewMarkerPosition(position);
+	setShowMarkerForm(true);
+	// Выключаем режим размещения маркера
+	if (typeof onToggleMarkerPlacement === 'function') {
+		onToggleMarkerPlacement(false);
+	}
+};
   
   // Обработчик закрытия формы маркера
   const handleCloseMarkerForm = () => {
@@ -207,7 +208,7 @@ function MapComponent({
   const effectiveZoom = isFollowActive && !userInteractedWithMap ? 16 : currentViewZoom;
   
   return (
-    <div className="map-container">
+    <div className={`map-container ${isMarkerPlacementMode ? 'marker-placement-mode' : ''}`}>
       <MapContainer 
         ref={mapRef}
         center={effectiveCenter} 
@@ -256,6 +257,16 @@ function MapComponent({
             followUser={isFollowActive && !userInteractedWithMap}
           />
         )}
+        
+        {/* Компонент аудио-навигации */}
+        {position && isLocationActive && selectedRoute && (
+          <AudioNavigation 
+            nearestPoint={nearestPoint}
+            isOnRoute={isOnRoute}
+            selectedRoute={selectedRoute}
+            userPosition={position}
+          />
+        )}
       </MapContainer>
       
       {/* Кнопки управления геолокацией */}
@@ -266,14 +277,7 @@ function MapComponent({
         isFollowActive={isFollowActive}
       />
       
-      {/* Кнопки управления маркерами */}
-      <MarkerControl 
-        onToggleMarkerPlacement={handleToggleMarkerPlacement}
-        isMarkerPlacementMode={isMarkerPlacementMode}
-        routes={routes}
-        selectedRoute={selectedRoute}
-        onMarkerSelect={handleMarkerClick}
-      />
+      {/* Удаляем контрол для управления маркерами, так как теперь он в сайдбаре */}
       
       {/* Форма для создания/редактирования маркера */}
       {showMarkerForm && (
@@ -312,7 +316,13 @@ MapComponent.propTypes = {
   routes: PropTypes.array.isRequired,
   selectedRoute: PropTypes.object,
   onRouteSelect: PropTypes.func.isRequired,
-  showAllRoutes: PropTypes.bool.isRequired
+  showAllRoutes: PropTypes.bool.isRequired,
+  isMarkerPlacementMode: PropTypes.bool,
+  onToggleMarkerPlacement: PropTypes.func
+};
+
+MapComponent.defaultProps = {
+  isMarkerPlacementMode: false
 };
 
 export default MapComponent;

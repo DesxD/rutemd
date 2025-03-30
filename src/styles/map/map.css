@@ -41,3 +41,22 @@
   font-weight: bold;
   margin-top: 5px;
 }
+
+.marker-placement-mode .leaflet-container {
+  cursor: crosshair !important;
+}
+
+/* Стиль для индикатора режима размещения маркеров */
+.marker-placement-indicator {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 1000;
+  pointer-events: none;
+}

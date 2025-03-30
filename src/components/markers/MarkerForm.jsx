@@ -1,6 +1,7 @@
 /**
  * Компонент формы для создания или редактирования маркера
  * Позволяет задать название, текст для озвучивания, изображение и связанные маршруты
+ * Улучшенный выбор изображений с предпросмотром
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -49,6 +50,7 @@ function MarkerForm({
   const [imageUrl, setImageUrl] = useState(`${MARKER_IMAGES_PATH}/sign-off.png`);
   const [selectedRouteIds, setSelectedRouteIds] = useState([]);
   const [sequence, setSequence] = useState(0);
+  const [showImagesGrid, setShowImagesGrid] = useState(false);
   
   // Инициализация формы при редактировании
   useEffect(() => {
@@ -64,10 +66,16 @@ function MarkerForm({
     }
   }, [isEditing, marker, selectedRoute]);
   
-  // Обработчик изменения изображения
-  const handleImageChange = (e) => {
-    const selectedImage = e.target.value;
-    setImageUrl(`${MARKER_IMAGES_PATH}/${selectedImage}`);
+  // Обработчик выбора изображения
+  const handleImageSelect = (img) => {
+    const newImageUrl = `${MARKER_IMAGES_PATH}/${img}`;
+    setImageUrl(newImageUrl);
+    setShowImagesGrid(false);
+  };
+  
+  // Получаем имя файла из полного пути
+  const getImageFileName = (path) => {
+    return path.split('/').pop();
   };
   
   // Обработчик изменения выбранных маршрутов
@@ -146,21 +154,34 @@ function MarkerForm({
       </div>
       
       <div className="form-group">
-        <label htmlFor="imageUrl">{t('markers.selectImage')}:</label>
-        <select 
-          id="imageUrl"
-          value={imageUrl.replace(`${MARKER_IMAGES_PATH}/`, '')} 
-          onChange={handleImageChange}
-        >
-          {MARKER_IMAGES.map(img => (
-            <option key={img} value={img}>
-              {img}
-            </option>
-          ))}
-        </select>
-        
-        <div className="selected-image-preview">
-          <img src={imageUrl} alt="Selected marker" />
+        <label>{t('markers.selectImage')}:</label>
+        <div className="image-selector">
+          <div 
+            className="selected-image-preview"
+            onClick={() => setShowImagesGrid(!showImagesGrid)}
+          >
+            <img src={imageUrl} alt="Selected marker" />
+            <span className="image-filename">{getImageFileName(imageUrl)}</span>
+            <span className="dropdown-arrow">▼</span>
+          </div>
+          
+          {showImagesGrid && (
+            <div className="images-grid">
+              {MARKER_IMAGES.map(img => (
+                <div 
+                  key={img} 
+                  className={`image-item ${imageUrl === `${MARKER_IMAGES_PATH}/${img}` ? 'selected' : ''}`}
+                  onClick={() => handleImageSelect(img)}
+                >
+                  <img 
+                    src={`${MARKER_IMAGES_PATH}/${img}`} 
+                    alt={img} 
+                  />
+                  <span className="image-name">{img}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       

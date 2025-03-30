@@ -1,7 +1,7 @@
 /**
  * Главный компонент приложения
  * Управляет состоянием приложения и объединяет все компоненты
- * Добавлен провайдер маркеров для поддержки функциональности маркеров
+ * Добавлены провайдеры для маркеров и аудио
  */
 
 import { useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ import Sidebar from './components/sidebar/Sidebar';
 import MenuButton from './components/ui/MenuButton';
 import useRoutes from './hooks/useRoutes';
 import { MarkersProvider } from './contexts/MarkersContext.jsx';
+import { AudioProvider } from './contexts/AudioContext.jsx';
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -19,6 +20,9 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showAllRoutes, setShowAllRoutes] = useState(false);
   
+  // Состояние режима размещения маркеров
+  const [isMarkerPlacementMode, setIsMarkerPlacementMode] = useState(false);
+
   const { 
     routes, 
     selectedRoute, 
@@ -45,34 +49,49 @@ function App() {
     setShowAllRoutes(!showAllRoutes);
   };
 
+  // Обработчик переключения режима размещения маркеров
+  const toggleMarkerPlacement = (value) => {
+    // Если передано значение, устанавливаем его, иначе переключаем
+    if (typeof value === 'boolean') {
+      setIsMarkerPlacementMode(value);
+    } else {
+      setIsMarkerPlacementMode(!isMarkerPlacementMode);
+    }
+  };
+
   return (
     <MarkersProvider>
-      <div className="app">
-        {/* Кнопка-гамбургер для мобильных устройств */}
-        <MenuButton 
-          isOpen={isSidebarOpen}
-          onClick={toggleSidebar}
-        />
-        
-        <Sidebar 
-          currentCity={currentCity}
-          onCityChange={setCurrentCity}
-          routes={routes}
-          selectedRoute={selectedRoute}
-          onRouteSelect={selectRoute}
-          isOpen={isSidebarOpen}
-          showAllRoutes={showAllRoutes}
-          onToggleShowAllRoutes={toggleShowAllRoutes}
-        />
-        
-        <MapComponent 
-          currentCity={currentCity}
-          routes={routes}
-          selectedRoute={selectedRoute}
-          onRouteSelect={selectRoute}
-          showAllRoutes={showAllRoutes}
-        />
-      </div>
+      <AudioProvider>
+        <div className="app">
+          {/* Кнопка-гамбургер для мобильных устройств */}
+          <MenuButton 
+            isOpen={isSidebarOpen}
+            onClick={toggleSidebar}
+          />
+          
+          <Sidebar 
+            currentCity={currentCity}
+            onCityChange={setCurrentCity}
+            routes={routes}
+            selectedRoute={selectedRoute}
+            onRouteSelect={selectRoute}
+            isOpen={isSidebarOpen}
+            showAllRoutes={showAllRoutes}
+            onToggleShowAllRoutes={toggleShowAllRoutes}
+            onToggleMarkerPlacement={toggleMarkerPlacement}
+          />
+          
+          <MapComponent 
+            currentCity={currentCity}
+            routes={routes}
+            selectedRoute={selectedRoute}
+            onRouteSelect={selectRoute}
+            showAllRoutes={showAllRoutes}
+            isMarkerPlacementMode={isMarkerPlacementMode}
+            onToggleMarkerPlacement={toggleMarkerPlacement}
+          />
+        </div>
+      </AudioProvider>
     </MarkersProvider>
   );
 }

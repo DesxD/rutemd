@@ -1,24 +1,27 @@
 /**
  * Компонент для аудио-сопровождения навигации
  * Озвучивает ближайшие точки маршрута, маркеры и важные события
+ * Обновлен для использования глобального контекста аудио
  */
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { useMarkersContext } from '../../contexts/MarkersContext.jsx';
+import { useAudioContext } from '../../contexts/AudioContext.jsx';
 import { sortMarkersBySequence } from '../../models/MarkerModel';
 
 function AudioNavigation({ 
   nearestPoint, 
   isOnRoute, 
-  enabled = true, 
   selectedRoute,
   userPosition 
 }) {
   const { t } = useTranslation();
   const { markers } = useMarkersContext();
-  const [isAudioEnabled, setIsAudioEnabled] = useState(enabled);
+  // Используем общий контекст для управления аудио
+  const { isAudioEnabled } = useAudioContext();
+  
   const announcedPoints = useRef(new Set());
   const announcedMarkers = useRef(new Set());
   const lastAnnouncementTime = useRef(0);
@@ -86,11 +89,6 @@ function AudioNavigation({
     lastAnnouncementTime.current = Date.now();
   };
   
-  // Функция переключения аудио
-  const toggleAudio = () => {
-    setIsAudioEnabled(prev => !prev);
-  };
-  
   // Реагируем на изменения ближайшей точки и статуса нахождения на маршруте
   useEffect(() => {
     if (!isAudioEnabled || !nearestPoint) return;
@@ -152,7 +150,7 @@ function AudioNavigation({
     }
   }, [isAudioEnabled, isOnRoute, t]);
   
-  // Озвучивание маркеров
+  // Озвучивание маркеров по установленной последовательности
   useEffect(() => {
     if (!isAudioEnabled || !userPosition || !routeMarkers.length || !isOnRoute) return;
     
@@ -162,7 +160,10 @@ function AudioNavigation({
       return;
     }
     
-    // Проверяем маркеры по порядку
+    // Находим следующий по порядку неозвученный маркер
+    let nextMarkerToAnnounce = null;
+    let minSequence = Infinity;
+    
     for (const marker of routeMarkers) {
       // Пропускаем уже озвученные маркеры
       if (announcedMarkers.current.has(marker.id)) continue;
@@ -170,26 +171,34 @@ function AudioNavigation({
       // Если у маркера нет позиции или текста для озвучивания, пропускаем
       if (!marker.position || !marker.speechText) continue;
       
-      // Вычисляем расстояние до маркера
-      const distance = calculateDistance(
-        userPosition.latitude, userPosition.longitude,
-        marker.position.lat, marker.position.lng
-      );
-      
-      // Если пользователь достаточно близко к маркеру
-      if (distance <= MARKER_ANNOUNCEMENT_DISTANCE) {
-        // Озвучиваем текст маркера
-        speak(marker.speechText);
-        
-        // Запоминаем время озвучивания маркера
-        lastMarkerAnnouncementTime.current = now;
-        
-        // Добавляем маркер в список озвученных
-        announcedMarkers.current.add(marker.id);
-        
-        // Озвучиваем только один маркер за раз
-        break;
+      // Ищем маркер с наименьшим sequence, который еще не озвучен
+      if (marker.sequence < minSequence) {
+        minSequence = marker.sequence;
+        nextMarkerToAnnounce = marker;
       }
+    }
+    
+    // Если не нашли следующий маркер, выходим
+    if (!nextMarkerToAnnounce) return;
+    
+    // Вычисляем расстояние до следующего маркера
+    const distance = calculateDistance(
+      userPosition.latitude, userPosition.longitude,
+      nextMarkerToAnnounce.position.lat, nextMarkerToAnnounce.position.lng
+    );
+    
+    // Если пользователь достаточно близко к маркеру
+    if (distance <= MARKER_ANNOUNCEMENT_DISTANCE) {
+      // Озвучиваем текст маркера
+      speak(nextMarkerToAnnounce.speechText);
+      
+      // Запоминаем время озвучивания маркера
+      lastMarkerAnnouncementTime.current = now;
+      
+      // Добавляем маркер в список озвученных
+      announcedMarkers.current.add(nextMarkerToAnnounce.id);
+      
+      console.log(`Озвучен маркер: ${nextMarkerToAnnounce.title} (последовательность: ${nextMarkerToAnnounce.sequence})`);
     }
   }, [isAudioEnabled, userPosition, routeMarkers, isOnRoute]);
   
@@ -223,7 +232,6 @@ AudioNavigation.propTypes = {
     distance: PropTypes.number
   }),
   isOnRoute: PropTypes.bool,
-  enabled: PropTypes.bool,
   selectedRoute: PropTypes.object,
   userPosition: PropTypes.shape({
     latitude: PropTypes.number.isRequired,

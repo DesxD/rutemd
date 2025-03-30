@@ -1,5 +1,6 @@
 /**
  * Стили для формы добавления/редактирования маркера
+ * Добавлены стили для улучшенного выбора изображений
  */
 
  .marker-form {
@@ -34,8 +35,7 @@
 
 .form-group input[type="text"],
 .form-group input[type="number"],
-.form-group textarea,
-.form-group select {
+.form-group textarea {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #ddd;
@@ -48,19 +48,99 @@
   resize: vertical;
 }
 
+/* Стили для улучшенного выбора изображений */
+.image-selector {
+  position: relative;
+  margin-bottom: 10px;
+}
+
 .selected-image-preview {
-  margin-top: 10px;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selected-image-preview:hover {
+  background-color: #f2f2f2;
+  border-color: #ccc;
 }
 
 .selected-image-preview img {
-  max-width: 64px;
-  max-height: 64px;
-  border: 1px solid #eee;
-  padding: 5px;
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+  object-fit: contain;
+}
+
+.image-filename {
+  flex-grow: 1;
+  color: #666;
+}
+
+.dropdown-arrow {
+  color: #888;
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.images-grid {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #f9f9f9;
+  margin-top: 5px;
+  padding: 10px;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.image-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.image-item:hover {
+  background-color: #f5f5f5;
+}
+
+.image-item.selected {
+  background-color: #e0f0ff;
+  border: 1px solid #a0d0ff;
+}
+
+.image-item img {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 5px;
+  object-fit: contain;
+}
+
+.image-name {
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .routes-checkbox-group {
@@ -155,4 +235,11 @@
 
 .close-form-button:hover {
   color: #000;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .images-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
