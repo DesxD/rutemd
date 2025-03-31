@@ -19,6 +19,7 @@ const MARKER_IMAGES = [
   '8.png', 
   '10.png', 
   '11.png', 
+  '17.png', 
   'asp.png', 
   'bump.png', 
   'crosswalk.png', 

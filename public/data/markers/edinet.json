@@ -1,23 +1,65 @@
 {
   "version": "1.0",
-  "timestamp": "2025-03-30T20:13:54.141Z",
+  "timestamp": "2025-03-31T18:44:26.125Z",
   "city": "edinet",
   "markers": [
     {
-      "id": "marker_1743365627950_531",
-      "title": "Стадион",
-      "speechText": "",
-      "imageUrl": "/images/markers/sign-off.png",
+      "id": "marker_1743363950456_595",
+      "title": "неровность, напротив забора",
+      "speechText": "искуст неровность напротив забора",
+      "imageUrl": "/images/markers/bump.png",
       "position": {
-        "lat": 48.17527270818491,
-        "lng": 27.293322086334232
+        "lat": 48.1721502878224,
+        "lng": 27.283479451871248
+      },
+      "routeIds": [
+        "route-1",
+        "route-2",
+        "route-3",
+        "route-4",
+        "route-5",
+        "route-6",
+        "route-7",
+        "route-8",
+        "route-9",
+        "route-10"
+      ],
+      "sequence": 1,
+      "createdAt": "2025-03-30T19:45:50.456Z",
+      "updatedAt": "2025-03-30T20:28:36.005Z"
+    },
+    {
+      "id": "marker_1743364432775_435",
+      "title": "Пешеходный переход у школы",
+      "speechText": "Пешеходный переход",
+      "imageUrl": "/images/markers/crosswalk.png",
+      "position": {
+        "lat": 48.17421394334514,
+        "lng": 27.288140058517456
       },
       "routeIds": [
         "route-1"
       ],
       "sequence": 0,
-      "createdAt": "2025-03-30T20:13:47.950Z",
-      "updatedAt": "2025-03-30T20:13:47.950Z"
+      "createdAt": "2025-03-30T19:53:52.775Z",
+      "updatedAt": "2025-03-30T20:28:33.566Z"
+    },
+    {
+      "id": "marker_1743446497902_733",
+      "title": "Ямы по дороге рядом с Браво",
+      "speechText": "Осторожно Ямы",
+      "imageUrl": "/images/markers/asp.png",
+      "position": {
+        "lat": 48.17093847484282,
+        "lng": 27.31379270553589
+      },
+      "routeIds": [
+        "route-2",
+        "route-5"
+      ],
+      "sequence": 0,
+      "createdAt": "2025-03-31T18:41:37.902Z",
+      "updatedAt": "2025-03-31T18:41:37.903Z"
     }
   ]
 }
