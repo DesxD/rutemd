@@ -32,6 +32,7 @@
 
 .sidebar-content {
   padding: 20px;
+	padding-bottom: 60px;
 }
 
 .sidebar-title {
@@ -86,6 +87,7 @@
     padding: 15px;
     /* Добавляем отступ сверху для кнопки-гамбургера */
     padding-top: 70px;
+		padding-bottom: 60px;
   }
   
   .sidebar-title {
@@ -110,6 +112,7 @@
   .sidebar-content {
     padding: 10px;
     padding-top: 60px;
+		padding-bottom: 60px;
   }
 }
 

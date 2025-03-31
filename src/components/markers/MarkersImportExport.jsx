@@ -1,6 +1,7 @@
 /**
  * Компонент для импорта и экспорта маркеров
  * Позволяет сохранять все данные о маркерах в файл и загружать их обратно
+ * Добавлена поддержка файлов по городам
  */
 
 import { useState, useCallback } from 'react';
@@ -9,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useMarkersContext } from '../../contexts/MarkersContext.jsx';
 import '../../styles/markers/MarkersImportExport.css';
 
-function MarkersImportExport({ isOpen, onClose }) {
+function MarkersImportExport({ isOpen, onClose, currentCity }) {
   const { t } = useTranslation();
   const { markers, addMarker, updateMarkerById } = useMarkersContext();
   const [log, setLog] = useState('');
@@ -27,6 +28,7 @@ function MarkersImportExport({ isOpen, onClose }) {
       const exportData = {
         version: '1.0',
         timestamp: new Date().toISOString(),
+        city: currentCity,
         markers: markers
       };
 
@@ -40,7 +42,7 @@ function MarkersImportExport({ isOpen, onClose }) {
       // Создаем элемент для скачивания
       const a = document.createElement('a');
       a.href = url;
-      a.download = `markers_export_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `markers_${currentCity}_${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       
@@ -55,7 +57,54 @@ function MarkersImportExport({ isOpen, onClose }) {
       console.error('Ошибка при экспорте маркеров:', error);
       addToLog(t('markers.exportError'));
     }
-  }, [markers, t]);
+  }, [markers, currentCity, t]);
+
+  // Экспорт маркеров текущего города в формат для постоянных файлов
+  const handleExportCityMarkers = useCallback(() => {
+    try {
+      // Фильтруем маркеры, относящиеся к маршрутам текущего города
+      // Здесь предполагается, что id маршрутов содержат название города
+      const cityMarkers = markers.filter(marker => {
+        return marker.routeIds.some(routeId => routeId.includes(currentCity));
+      });
+      
+      // Создаем объект для экспорта
+      const exportData = {
+        version: '1.0',
+        timestamp: new Date().toISOString(),
+        city: currentCity,
+        markers: cityMarkers
+      };
+
+      // Преобразуем в JSON
+      const jsonData = JSON.stringify(exportData, null, 2);
+      
+      // Создаем blob и ссылку для скачивания
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      // Создаем элемент для скачивания
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentCity}.json`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Очищаем ресурсы
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+      
+      addToLog(t('markers.exportCitySuccess', { 
+        city: t(`cities.${currentCity}`), 
+        count: cityMarkers.length 
+      }));
+    } catch (error) {
+      console.error('Ошибка при экспорте маркеров города:', error);
+      addToLog(t('markers.exportError'));
+    }
+  }, [markers, currentCity, t]);
 
   // Импорт маркеров из JSON файла
   const handleImportMarkers = useCallback(() => {
@@ -132,6 +181,12 @@ function MarkersImportExport({ isOpen, onClose }) {
               skipped: skippedCount 
             }));
           }
+          
+          // Если файл содержит информацию о городе, показываем это
+          if (importData.city) {
+            addToLog(t('markers.importedFromCity', { city: importData.city }));
+          }
+          
         } catch (error) {
           console.error('Ошибка при импорте маркеров:', error);
           addToLog(t('markers.importError') + ' ' + error.message);
@@ -167,12 +222,21 @@ function MarkersImportExport({ isOpen, onClose }) {
             <div className="action-section">
               <h3>{t('markers.export')}</h3>
               <p>{t('markers.exportDescription')}</p>
-              <button 
-                className="btn btn-primary"
-                onClick={handleExportMarkers}
-              >
-                {t('markers.exportAllMarkers')}
-              </button>
+              <div className="export-buttons">
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleExportMarkers}
+                >
+                  {t('markers.exportAllMarkers')}
+                </button>
+                
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleExportCityMarkers}
+                >
+                  {t('markers.exportCityMarkers', { city: t(`cities.${currentCity}`) })}
+                </button>
+              </div>
             </div>
             
             <div className="action-section">
@@ -222,7 +286,8 @@ function MarkersImportExport({ isOpen, onClose }) {
 
 MarkersImportExport.propTypes = {
   isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  currentCity: PropTypes.string.isRequired
 };
 
 export default MarkersImportExport;

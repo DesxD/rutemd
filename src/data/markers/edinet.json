@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-03-30T20:23:22.880Z",
+  "city": "edinet",
+  "markers": [
+    {
+      "id": "marker_1743363950456_595",
+      "title": "неровность, напротив забора",
+      "speechText": "искуст неровность напротив забора",
+      "imageUrl": "/images/markers/bump.png",
+      "position": {
+        "lat": 48.1721502878224,
+        "lng": 27.283479451871248
+      },
+      "routeIds": [
+        "route-1",
+        "route-2",
+        "route-3",
+        "route-4",
+        "route-5",
+        "route-6",
+        "route-7",
+        "route-8",
+        "route-9",
+        "route-10"
+      ],
+      "sequence": 2,
+      "createdAt": "2025-03-30T19:45:50.456Z",
+      "updatedAt": "2025-03-30T20:23:02.727Z"
+    },
+    {
+      "id": "marker_1743364432775_435",
+      "title": "Пешеходный переход у школы",
+      "speechText": "Пешеходный переход",
+      "imageUrl": "/images/markers/crosswalk.png",
+      "position": {
+        "lat": 48.17421394334514,
+        "lng": 27.288140058517456
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 0,
+      "createdAt": "2025-03-30T19:53:52.775Z",
+      "updatedAt": "2025-03-30T20:23:02.728Z"
+    }
+  ]
+}

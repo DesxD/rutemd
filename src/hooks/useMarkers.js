@@ -1,24 +1,33 @@
 /**
  * Хук для управления маркерами
  * Предоставляет методы для работы с маркерами и их сохранения в локальном хранилище
+ * Обновлен для поддержки постоянных маркеров из JSON-файлов
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createMarker, updateMarker } from '../models/MarkerModel';
+import usePermanentMarkers from './usePermanentMarkers';
 
 const STORAGE_KEY = 'route_markers';
 
-export default function useMarkers() {
-  const [markers, setMarkers] = useState([]);
+export default function useMarkers(currentCity) {
+  const [userMarkers, setUserMarkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Загрузка постоянных маркеров из JSON-файлов
+  const { 
+    permanentMarkers, 
+    isLoading: isPermanentLoading, 
+    error: permanentError 
+  } = usePermanentMarkers(currentCity);
 
-  // Загрузка маркеров из localStorage при монтировании
+  // Загрузка пользовательских маркеров из localStorage при монтировании
   useEffect(() => {
-    const loadMarkers = () => {
+    const loadUserMarkers = () => {
       try {
         const savedMarkers = localStorage.getItem(STORAGE_KEY);
         if (savedMarkers) {
-          setMarkers(JSON.parse(savedMarkers));
+          setUserMarkers(JSON.parse(savedMarkers));
         }
       } catch (error) {
         console.error('Ошибка при загрузке маркеров:', error);
@@ -27,30 +36,55 @@ export default function useMarkers() {
       }
     };
 
-    loadMarkers();
+    loadUserMarkers();
   }, []);
 
-  // Сохранение маркеров в localStorage при изменении
+  // Сохранение пользовательских маркеров в localStorage при изменении
   useEffect(() => {
     if (!isLoading) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(markers));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userMarkers));
       } catch (error) {
         console.error('Ошибка при сохранении маркеров:', error);
       }
     }
-  }, [markers, isLoading]);
+  }, [userMarkers, isLoading]);
 
-  // Добавление нового маркера
+  // Объединение пользовательских и постоянных маркеров
+  const markers = useMemo(() => {
+    // Создаем Map с пользовательскими маркерами
+    const userMarkersMap = new Map(userMarkers.map(marker => [marker.id, marker]));
+    
+    // Копируем все постоянные маркеры
+    const combinedMarkers = [...permanentMarkers];
+    
+    // Добавляем или заменяем маркеры из пользовательских (если ID совпадают)
+    userMarkers.forEach(userMarker => {
+      // Проверяем, есть ли такой маркер среди постоянных
+      const existingIndex = combinedMarkers.findIndex(m => m.id === userMarker.id);
+      
+      if (existingIndex >= 0) {
+        // Если есть, заменяем его пользовательским
+        combinedMarkers[existingIndex] = userMarker;
+      } else {
+        // Если нет, добавляем
+        combinedMarkers.push(userMarker);
+      }
+    });
+    
+    return combinedMarkers;
+  }, [userMarkers, permanentMarkers]);
+
+  // Добавление нового маркера (только в пользовательские)
   const addMarker = useCallback((markerData) => {
     const newMarker = createMarker(markerData);
-    setMarkers(prevMarkers => [...prevMarkers, newMarker]);
+    setUserMarkers(prevMarkers => [...prevMarkers, newMarker]);
     return newMarker;
   }, []);
 
-  // Обновление существующего маркера
+  // Обновление существующего маркера (только в пользовательских)
   const updateMarkerById = useCallback((markerId, updates) => {
-    setMarkers(prevMarkers => 
+    setUserMarkers(prevMarkers => 
       prevMarkers.map(marker => 
         marker.id === markerId 
           ? updateMarker(marker, updates) 
@@ -59,9 +93,9 @@ export default function useMarkers() {
     );
   }, []);
 
-  // Удаление маркера по ID
+  // Удаление маркера по ID (только из пользовательских)
   const removeMarkerById = useCallback((markerId) => {
-    setMarkers(prevMarkers => prevMarkers.filter(marker => marker.id !== markerId));
+    setUserMarkers(prevMarkers => prevMarkers.filter(marker => marker.id !== markerId));
   }, []);
 
   // Получение маркеров для конкретного маршрута
@@ -86,15 +120,24 @@ export default function useMarkers() {
     updateMarkerById(markerId, { sequence });
   }, [updateMarkerById]);
 
+  // Проверка, является ли маркер постоянным
+  const isPermanentMarker = useCallback((markerId) => {
+    return permanentMarkers.some(marker => marker.id === markerId);
+  }, [permanentMarkers]);
+
   return {
     markers,
-    isLoading,
+    userMarkers,
+    permanentMarkers,
+    isLoading: isLoading || isPermanentLoading,
+    permanentError,
     addMarker,
     updateMarkerById,
     removeMarkerById,
     getMarkersByRouteId,
     setMarkerPosition,
     updateMarkerRoutes,
-    updateMarkerSequence
+    updateMarkerSequence,
+    isPermanentMarker
   };
 }

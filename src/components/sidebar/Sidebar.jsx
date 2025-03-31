@@ -164,6 +164,7 @@ function Sidebar({
         <MarkersImportExport 
           isOpen={showImportExport}
           onClose={() => setShowImportExport(false)}
+          currentCity={currentCity}
         />
       )}
     </div>

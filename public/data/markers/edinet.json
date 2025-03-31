@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-03-30T20:13:54.141Z",
+  "city": "edinet",
+  "markers": [
+    {
+      "id": "marker_1743365627950_531",
+      "title": "Стадион",
+      "speechText": "",
+      "imageUrl": "/images/markers/sign-off.png",
+      "position": {
+        "lat": 48.17527270818491,
+        "lng": 27.293322086334232
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 0,
+      "createdAt": "2025-03-30T20:13:47.950Z",
+      "updatedAt": "2025-03-30T20:13:47.950Z"
+    }
+  ]
+}

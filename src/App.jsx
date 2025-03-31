@@ -60,7 +60,7 @@ function App() {
   };
 
   return (
-    <MarkersProvider>
+    <MarkersProvider currentCity={currentCity}>
       <AudioProvider>
         <div className="app">
           {/* Кнопка-гамбургер для мобильных устройств */}

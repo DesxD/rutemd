@@ -1,6 +1,7 @@
 /**
  * Контекст для управления маркерами
  * Обеспечивает доступ к маркерам из любого компонента
+ * Обновлен для поддержки постоянных маркеров
  */
 
 import { createContext, useContext } from 'react';
@@ -14,8 +15,8 @@ const MarkersContext = createContext(null);
  * @param {Object} props - Свойства компонента
  * @returns {JSX.Element} - JSX элемент
  */
-export const MarkersProvider = ({ children }) => {
-  const markersService = useMarkers();
+export const MarkersProvider = ({ children, currentCity }) => {
+  const markersService = useMarkers(currentCity);
   
   return (
     <MarkersContext.Provider value={markersService}>
