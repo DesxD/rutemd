@@ -1,16 +1,16 @@
 /**
  * Компонент боковой панели
- * Содержит элементы управления: выбор города и маршрута, а также управление маркерами
- * Добавлена кнопка включения/выключения аудио-навигации
+ * Исправлен для корректного использования хука useMarkersContext
  */
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import { useMarkersContext } from '../../contexts/MarkersContext'; // Добавьте импорт здесь
 import CitySelector from '../selectors/CitySelector';
 import RouteSelector from '../selectors/RouteSelector';
 import MarkerManager from '../markers/MarkerManager';
-import MarkersSequencer from '../markers/MarkersSequencer';
+import SequenceManager from '../sequences/SequenceManager';
 import MarkersImportExport from '../markers/MarkersImportExport';
 import { useAudioContext } from '../../contexts/AudioContext.jsx';
 import '../../styles/sidebar/Sidebar.css';
@@ -28,10 +28,11 @@ function Sidebar({
 }) {
   const { t } = useTranslation();
   const { isAudioEnabled, toggleAudio } = useAudioContext();
+  const { applySequenceFromFile } = useMarkersContext(); // Используйте хук здесь, на верхнем уровне
   
   // Добавляем состояния для управления модальными окнами
   const [showMarkerManager, setShowMarkerManager] = useState(false);
-  const [showSequencer, setShowSequencer] = useState(false);
+  const [showSequenceManager, setShowSequenceManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
 
   // Корректный обработчик клика для размещения маркера
@@ -40,6 +41,20 @@ function Sidebar({
       onToggleMarkerPlacement(true); // Включаем режим размещения
     } else {
       console.error('onToggleMarkerPlacement не является функцией');
+    }
+  };
+
+  // Обработчик быстрой загрузки последовательности
+  const handleQuickLoad = async () => {
+    if (currentCity && selectedRoute) {
+      const result = await applySequenceFromFile(currentCity, selectedRoute.number);
+      
+      // Уведомление о результате
+      if (result) {
+        alert(t('sequences.quickLoadSuccess'));
+      } else {
+        alert(t('sequences.quickLoadNotFound'));
+      }
     }
   };
 
@@ -116,17 +131,6 @@ function Sidebar({
               {t('markers.manageMarkers')}
             </button>
             
-            {selectedRoute && (
-              <button 
-                className="btn-marker" 
-                onClick={() => setShowSequencer(true)}
-                title={t('markers.setSequence')}
-              >
-                <span className="icon">🔄</span>
-                {t('markers.setSequence')}
-              </button>
-            )}
-            
             <button 
               className="btn-marker" 
               onClick={() => setShowImportExport(true)}
@@ -135,6 +139,33 @@ function Sidebar({
               <span className="icon">💾</span>
               {t('markers.importExport')}
             </button>
+          </div>
+        </div>
+        
+        {/* Новый раздел управления последовательностями */}
+        <div className="sidebar-section sequences-section">
+          <h3>{t('sequences.title')}</h3>
+          <div className="sequence-buttons">
+            <button 
+              className="btn-sequence" 
+              onClick={() => setShowSequenceManager(true)}
+              title={t('sequences.manageSequences')}
+            >
+              <span className="icon">🔄</span>
+              {t('sequences.manageSequences')}
+            </button>
+            
+            {/* Кнопка быстрой загрузки последовательности для текущего маршрута */}
+            {selectedRoute && (
+              <button 
+                className="btn-sequence btn-quick-load" 
+                onClick={handleQuickLoad} // Используем функцию, объявленную выше
+                title={t('sequences.quickLoad')}
+              >
+                <span className="icon">⚡</span>
+                {t('sequences.quickLoad')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -149,11 +180,12 @@ function Sidebar({
         />
       )}
       
-      {/* Компонент для настройки последовательности */}
-      {showSequencer && selectedRoute && (
-        <MarkersSequencer
-          isOpen={showSequencer}
-          onClose={() => setShowSequencer(false)}
+      {/* Компонент для управления последовательностями */}
+      {showSequenceManager && (
+        <SequenceManager
+          isOpen={showSequenceManager}
+          onClose={() => setShowSequenceManager(false)}
+          currentCity={currentCity}
           selectedRoute={selectedRoute}
           routes={routes}
         />

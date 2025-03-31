@@ -1,6 +1,7 @@
 /**
  * Компонент для настройки последовательности маркеров
  * Позволяет перетаскиванием изменять порядок озвучивания маркеров для конкретного маршрута
+ * Обновлен для работы с новым подходом к последовательностям
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -9,6 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { useMarkersContext } from '../../contexts/MarkersContext.jsx';
+import useExportSequence from '../../hooks/useExportSequence';
 import '../../styles/markers/MarkersSequencer.css';
 
 // Константы для типов перетаскивания
@@ -73,13 +75,15 @@ DraggableMarkerItem.propTypes = {
   moveMarker: PropTypes.func.isRequired,
 };
 
-function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
+function MarkersSequencer({ isOpen, onClose, selectedRoute, routes, currentCity }) {
   const { t } = useTranslation();
   const { markers, updateMarkerById } = useMarkersContext();
+  const { exportSequence, importSequence } = useExportSequence();
   
   // Локальное состояние для отображения маркеров в определенном порядке
   const [routeMarkers, setRouteMarkers] = useState([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // Инициализация списка маркеров при изменении выбранного маршрута
   useEffect(() => {
@@ -93,6 +97,7 @@ function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
       
       setRouteMarkers(sortedMarkers);
       setHasChanges(false);
+      setStatusMessage('');
     }
   }, [selectedRoute, markers]);
 
@@ -115,56 +120,29 @@ function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
     });
     
     setHasChanges(false);
+    setStatusMessage(t('markers.sequenceSaved'));
     
     // Предлагаем экспортировать последовательность
     if (window.confirm(t('markers.exportSequencePrompt'))) {
-      exportSequence();
-    } else {
-      onClose();
+      handleExportSequence();
     }
-  }, [routeMarkers, updateMarkerById, onClose, t]);
+  }, [routeMarkers, updateMarkerById, t]);
 
   // Функция для экспорта последовательности маркеров
-  const exportSequence = useCallback(() => {
-    try {
-      // Создаем объект данных для экспорта
-      const exportData = {
-        routeId: selectedRoute.id,
-        routeNumber: selectedRoute.number,
-        markersSequence: routeMarkers.map((marker, index) => ({
-          markerId: marker.id,
-          title: marker.title,
-          imageUrl: marker.imageUrl.replace('/images/markers/', ''),
-          sequence: index
-        }))
-      };
-      
-      // Преобразуем в JSON
-      const jsonData = JSON.stringify(exportData, null, 2);
-      
-      // Создаем blob и ссылку для скачивания
-      const blob = new Blob([jsonData], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      // Создаем элемент для скачивания
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `route_${selectedRoute.number}_markers_sequence.json`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Очищаем ресурсы
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 0);
-      
-      onClose();
-    } catch (error) {
-      console.error('Ошибка при экспорте последовательности:', error);
-      alert(t('markers.exportError'));
+  const handleExportSequence = useCallback(() => {
+    if (!selectedRoute || !routeMarkers.length || !currentCity) {
+      setStatusMessage(t('markers.noDataForExport'));
+      return;
     }
-  }, [selectedRoute, routeMarkers, onClose, t]);
+    
+    exportSequence(selectedRoute, currentCity)
+      .then(result => {
+        setStatusMessage(result.message);
+      })
+      .catch(error => {
+        setStatusMessage(t('markers.exportError') + ': ' + error);
+      });
+  }, [selectedRoute, routeMarkers, currentCity, exportSequence, t]);
 
   // Функция для импорта последовательности маркеров
   const handleImportSequence = useCallback(() => {
@@ -177,50 +155,27 @@ function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
       const file = e.target.files[0];
       if (!file) return;
       
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const importData = JSON.parse(event.target.result);
+      importSequence(file)
+        .then(result => {
+          setStatusMessage(result.message);
           
-          // Проверяем соответствие маршрута
-          if (importData.routeId !== selectedRoute.id) {
-            if (!window.confirm(t('markers.importRouteMismatch'))) {
-              return;
-            }
-          }
-          
-          // Обновляем последовательность маркеров
-          importData.markersSequence.forEach((item) => {
-            const marker = markers.find(m => m.id === item.markerId);
-            if (marker) {
-              updateMarkerById(marker.id, { sequence: item.sequence });
-            }
-          });
-          
-          // Обновляем локальный список
-          const updatedMarkers = [...markers].filter(marker => 
+          // Обновляем список маркеров, чтобы отразить изменения
+          const filteredMarkers = markers.filter(marker => 
             marker.routeIds.includes(selectedRoute.id)
-          ).sort((a, b) => {
-            const aSeq = importData.markersSequence.find(m => m.markerId === a.id)?.sequence || a.sequence;
-            const bSeq = importData.markersSequence.find(m => m.markerId === b.id)?.sequence || b.sequence;
-            return aSeq - bSeq;
-          });
+          );
+          const sortedMarkers = [...filteredMarkers].sort((a, b) => a.sequence - b.sequence);
           
-          setRouteMarkers(updatedMarkers);
-          setHasChanges(true);
-          
-          alert(t('markers.importSuccess'));
-        } catch (error) {
-          console.error('Ошибка при импорте последовательности:', error);
-          alert(t('markers.importError'));
-        }
-      };
-      
-      reader.readAsText(file);
+          setRouteMarkers(sortedMarkers);
+          // Сбрасываем флаг изменений, так как мы только что загрузили последовательность
+          setHasChanges(false);
+        })
+        .catch(error => {
+          setStatusMessage(t('markers.importError') + ': ' + error);
+        });
     };
     
     input.click();
-  }, [selectedRoute, markers, updateMarkerById, t]);
+  }, [selectedRoute, markers, importSequence, t]);
 
   if (!isOpen) return null;
 
@@ -246,6 +201,11 @@ function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
           <>
             <div className="sequencer-instructions">
               <p>{t('markers.sequencerInstructions')}</p>
+              {statusMessage && (
+                <div className="status-message">
+                  {statusMessage}
+                </div>
+              )}
             </div>
             
             <div className="sequencer-list">
@@ -268,6 +228,13 @@ function MarkersSequencer({ isOpen, onClose, selectedRoute, routes }) {
                 disabled={!hasChanges}
               >
                 {t('markers.saveSequence')}
+              </button>
+              
+              <button 
+                className="btn btn-secondary"
+                onClick={handleExportSequence}
+              >
+                {t('markers.exportSequence')}
               </button>
               
               <button 
@@ -295,11 +262,13 @@ MarkersSequencer.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   selectedRoute: PropTypes.object,
-  routes: PropTypes.array
+  routes: PropTypes.array,
+  currentCity: PropTypes.string
 };
 
 MarkersSequencer.defaultProps = {
-  routes: []
+  routes: [],
+  currentCity: ''
 };
 
 export default MarkersSequencer;

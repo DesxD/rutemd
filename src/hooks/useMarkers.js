@@ -1,143 +1,243 @@
 /**
- * Хук для управления маркерами
- * Предоставляет методы для работы с маркерами и их сохранения в локальном хранилище
- * Обновлен для поддержки постоянных маркеров из JSON-файлов
+ * Файл: useMarkers.js
+ * Хук для управления маркерами с поддержкой загрузки постоянных маркеров из файла
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { createMarker, updateMarker } from '../models/MarkerModel';
-import usePermanentMarkers from './usePermanentMarkers';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-const STORAGE_KEY = 'route_markers';
+/**
+ * Генерация уникального ID
+ * @returns {string} - Уникальный идентификатор
+ */
+function generateUniqueId() {
+  return `marker_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
 
-export default function useMarkers(currentCity) {
-  const [userMarkers, setUserMarkers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Загрузка постоянных маркеров из JSON-файлов
-  const { 
-    permanentMarkers, 
-    isLoading: isPermanentLoading, 
-    error: permanentError 
-  } = usePermanentMarkers(currentCity);
+/**
+ * Загрузка маркеров из файла
+ * @param {string} currentCity - Текущий выбранный город
+ * @returns {Promise<Array>} - Массив маркеров
+ */
+async function loadPermanentMarkers(currentCity) {
+  try {
+    const markersFilePath = `/data/markers/${currentCity}.json`;
+    const response = await fetch(markersFilePath);
+    
+    if (!response.ok) {
+      console.warn(`Файл маркеров для города ${currentCity} не найден.`);
+      return [];
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.markers && Array.isArray(data.markers)) {
+      console.log(`Загружено ${data.markers.length} постоянных маркеров для города ${currentCity}`);
+      return data.markers;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error(`Ошибка при загрузке постоянных маркеров для города ${currentCity}:`, error);
+    return [];
+  }
+}
 
-  // Загрузка пользовательских маркеров из localStorage при монтировании
+/**
+ * Хук для управления маркерами
+ * @param {string} currentCity - Текущий выбранный город
+ * @returns {object} - Методы для работы с маркерами
+ */
+function useMarkers(currentCity) {
+  const [markers, setMarkers] = useState([]);
+  // Используем ref для отслеживания загрузки
+  const didLoadLocalMarkers = useRef(false);
+  const didLoadPermanentMarkers = useRef(false);
+
+  // Загрузка маркеров из localStorage при первой инициализации
   useEffect(() => {
-    const loadUserMarkers = () => {
+    // Если маркеры уже загружены из localStorage, не выполняем повторно
+    if (didLoadLocalMarkers.current) return;
+    
+    // Загрузка из localStorage
+    const savedMarkers = localStorage.getItem('route_markers');
+    if (savedMarkers) {
       try {
-        const savedMarkers = localStorage.getItem(STORAGE_KEY);
-        if (savedMarkers) {
-          setUserMarkers(JSON.parse(savedMarkers));
-        }
+        const parsedMarkers = JSON.parse(savedMarkers);
+        setMarkers(parsedMarkers);
+        console.log(`Загружено ${parsedMarkers.length} маркеров из localStorage`);
       } catch (error) {
-        console.error('Ошибка при загрузке маркеров:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserMarkers();
-  }, []);
-
-  // Сохранение пользовательских маркеров в localStorage при изменении
-  useEffect(() => {
-    if (!isLoading) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(userMarkers));
-      } catch (error) {
-        console.error('Ошибка при сохранении маркеров:', error);
+        console.error('Ошибка при парсинге маркеров из localStorage:', error);
       }
     }
-  }, [userMarkers, isLoading]);
+    
+    // Отмечаем, что маркеры загружены из localStorage
+    didLoadLocalMarkers.current = true;
+  }, []);
 
-  // Объединение пользовательских и постоянных маркеров
-  const markers = useMemo(() => {
-    // Создаем Map с пользовательскими маркерами
-    const userMarkersMap = new Map(userMarkers.map(marker => [marker.id, marker]));
+  // Загрузка постоянных маркеров при изменении города
+  useEffect(() => {
+    if (!currentCity) return;
     
-    // Копируем все постоянные маркеры
-    const combinedMarkers = [...permanentMarkers];
-    
-    // Добавляем или заменяем маркеры из пользовательских (если ID совпадают)
-    userMarkers.forEach(userMarker => {
-      // Проверяем, есть ли такой маркер среди постоянных
-      const existingIndex = combinedMarkers.findIndex(m => m.id === userMarker.id);
+    // Загрузка постоянных маркеров из файла
+    const loadMarkers = async () => {
+      const permanentMarkers = await loadPermanentMarkers(currentCity);
       
-      if (existingIndex >= 0) {
-        // Если есть, заменяем его пользовательским
-        combinedMarkers[existingIndex] = userMarker;
-      } else {
-        // Если нет, добавляем
-        combinedMarkers.push(userMarker);
+      if (permanentMarkers.length > 0) {
+        setMarkers(prevMarkers => {
+          // Создаем Map для быстрого поиска
+          const markersMap = new Map(prevMarkers.map(m => [m.id, m]));
+          
+          // Проверяем и обновляем существующие маркеры или добавляем новые
+          permanentMarkers.forEach(pm => {
+            if (markersMap.has(pm.id)) {
+              const existingMarker = markersMap.get(pm.id);
+              // Обновляем свойства
+              existingMarker.title = pm.title;
+              existingMarker.imageUrl = pm.imageUrl;
+              existingMarker.position = pm.position;
+              
+              // Добавляем routeIds, если их нет
+              pm.routeIds.forEach(routeId => {
+                if (!existingMarker.routeIds.includes(routeId)) {
+                  existingMarker.routeIds.push(routeId);
+                }
+              });
+            } else {
+              // Добавляем новый маркер в Map
+              markersMap.set(pm.id, pm);
+            }
+          });
+          
+          // Получаем обновленный список маркеров
+          const updatedMarkers = Array.from(markersMap.values());
+          
+          // Сохраняем в localStorage
+          localStorage.setItem('route_markers', JSON.stringify(updatedMarkers));
+          
+          return updatedMarkers;
+        });
       }
+      
+      // Отмечаем, что постоянные маркеры загружены
+      didLoadPermanentMarkers.current = true;
+    };
+    
+    // Если город изменился, загружаем маркеры
+    didLoadPermanentMarkers.current = false;
+    loadMarkers();
+  }, [currentCity]);
+
+  // Функция добавления нового маркера
+  const addMarker = useCallback((markerData) => {
+    const newMarker = {
+      id: generateUniqueId(),
+      title: markerData.title || 'Новый маркер',
+      speechText: markerData.speechText || '',
+      imageUrl: markerData.imageUrl || '/images/markers/sign-off.png',
+      position: markerData.position,
+      routeIds: markerData.routeIds || [],
+      sequence: markerData.sequence || 0
+    };
+
+    setMarkers(prevMarkers => {
+      const updatedMarkers = [...prevMarkers, newMarker];
+      localStorage.setItem('route_markers', JSON.stringify(updatedMarkers));
+      return updatedMarkers;
     });
     
-    return combinedMarkers;
-  }, [userMarkers, permanentMarkers]);
-
-  // Добавление нового маркера (только в пользовательские)
-  const addMarker = useCallback((markerData) => {
-    const newMarker = createMarker(markerData);
-    setUserMarkers(prevMarkers => [...prevMarkers, newMarker]);
     return newMarker;
   }, []);
 
-  // Обновление существующего маркера (только в пользовательских)
-  const updateMarkerById = useCallback((markerId, updates) => {
-    setUserMarkers(prevMarkers => 
-      prevMarkers.map(marker => 
-        marker.id === markerId 
-          ? updateMarker(marker, updates) 
+  // Функция обновления существующего маркера
+  const updateMarkerById = useCallback((markerId, markerData) => {
+    setMarkers(prevMarkers => {
+      const updatedMarkers = prevMarkers.map(marker => 
+        marker.id === markerId
+          ? { ...marker, ...markerData }
           : marker
-      )
-    );
-  }, []);
-
-  // Удаление маркера по ID (только из пользовательских)
-  const removeMarkerById = useCallback((markerId) => {
-    setUserMarkers(prevMarkers => prevMarkers.filter(marker => marker.id !== markerId));
-  }, []);
-
-  // Получение маркеров для конкретного маршрута
-  const getMarkersByRouteId = useCallback((routeId) => {
-    return markers.filter(marker => marker.routeIds.includes(routeId));
-  }, [markers]);
-
-  // Установка новой позиции для маркера
-  const setMarkerPosition = useCallback((markerId, latLng) => {
-    updateMarkerById(markerId, {
-      position: { lat: latLng.lat, lng: latLng.lng }
+      );
+      localStorage.setItem('route_markers', JSON.stringify(updatedMarkers));
+      return updatedMarkers;
     });
-  }, [updateMarkerById]);
+  }, []);
 
-  // Обновление списка маршрутов, к которым относится маркер
-  const updateMarkerRoutes = useCallback((markerId, routeIds) => {
-    updateMarkerById(markerId, { routeIds });
-  }, [updateMarkerById]);
+  // Функция удаления маркера
+  const removeMarkerById = useCallback((markerId) => {
+    setMarkers(prevMarkers => {
+      const updatedMarkers = prevMarkers.filter(marker => marker.id !== markerId);
+      localStorage.setItem('route_markers', JSON.stringify(updatedMarkers));
+      return updatedMarkers;
+    });
+  }, []);
 
-  // Обновление порядка следования маркера
-  const updateMarkerSequence = useCallback((markerId, sequence) => {
-    updateMarkerById(markerId, { sequence });
-  }, [updateMarkerById]);
+  // Функция для обновления последовательностей маркеров для конкретного маршрута
+  const updateSequenceForRoute = useCallback((routeId, sequenceMap) => {
+    setMarkers(prevMarkers => {
+      const updatedMarkers = prevMarkers.map(marker => {
+        if (marker.routeIds.includes(routeId) && sequenceMap[marker.id] !== undefined) {
+          return {
+            ...marker,
+            sequence: sequenceMap[marker.id]
+          };
+        }
+        return marker;
+      });
+      
+      localStorage.setItem('route_markers', JSON.stringify(updatedMarkers));
+      return updatedMarkers;
+    });
+  }, []);
 
-  // Проверка, является ли маркер постоянным
-  const isPermanentMarker = useCallback((markerId) => {
-    return permanentMarkers.some(marker => marker.id === markerId);
-  }, [permanentMarkers]);
+  // Функция для применения сохраненной последовательности из файла
+  const applySequenceFromFile = useCallback(async (currentCity, routeNumber) => {
+    if (!currentCity || !routeNumber) return;
+    
+    try {
+      // Формируем путь к файлу последовательностей для конкретного маршрута
+      const sequenceFilePath = `/data/sequences/${currentCity}/route-${routeNumber}.json`;
+      
+      // Загружаем файл
+      const response = await fetch(sequenceFilePath);
+      if (!response.ok) {
+        if (response.status !== 404) {
+          console.error(`Ошибка загрузки файла последовательности: ${response.status}`);
+        }
+        return false;
+      }
+      
+      const data = await response.json();
+      
+      // Проверяем формат данных
+      if (!data.markersSequence || !Array.isArray(data.markersSequence)) {
+        console.error('Неверный формат файла последовательности');
+        return false;
+      }
+      
+      // Создаем словарь последовательностей
+      const sequenceMap = {};
+      data.markersSequence.forEach(item => {
+        sequenceMap[item.markerId] = item.sequence;
+      });
+      
+      // Применяем последовательности
+      updateSequenceForRoute(data.routeId, sequenceMap);
+      
+      console.log(`Последовательность для маршрута ${routeNumber} успешно применена`);
+      return true;
+    } catch (error) {
+      console.error('Ошибка при загрузке последовательности:', error);
+      return false;
+    }
+  }, [updateSequenceForRoute]);
 
   return {
     markers,
-    userMarkers,
-    permanentMarkers,
-    isLoading: isLoading || isPermanentLoading,
-    permanentError,
     addMarker,
     updateMarkerById,
     removeMarkerById,
-    getMarkersByRouteId,
-    setMarkerPosition,
-    updateMarkerRoutes,
-    updateMarkerSequence,
-    isPermanentMarker
+    updateSequenceForRoute,
+    applySequenceFromFile
   };
 }
+
+export default useMarkers;

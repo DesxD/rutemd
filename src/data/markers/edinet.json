@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": "2025-03-30T20:23:22.880Z",
+  "timestamp": "2025-03-31T20:02:39.222Z",
   "city": "edinet",
   "markers": [
     {
@@ -24,9 +24,9 @@
         "route-9",
         "route-10"
       ],
-      "sequence": 2,
+      "sequence": 0,
       "createdAt": "2025-03-30T19:45:50.456Z",
-      "updatedAt": "2025-03-30T20:23:02.727Z"
+      "updatedAt": "2025-03-31T19:46:04.573Z"
     },
     {
       "id": "marker_1743364432775_435",
@@ -40,9 +40,367 @@
       "routeIds": [
         "route-1"
       ],
-      "sequence": 0,
+      "sequence": 3,
       "createdAt": "2025-03-30T19:53:52.775Z",
-      "updatedAt": "2025-03-30T20:23:02.728Z"
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743446497902_733",
+      "title": "Ямы по дороге рядом с Браво",
+      "speechText": "Осторожно Ямы",
+      "imageUrl": "/images/markers/asp.png",
+      "position": {
+        "lat": 48.17093847484282,
+        "lng": 27.31379270553589
+      },
+      "routeIds": [
+        "route-2",
+        "route-5"
+      ],
+      "sequence": 0,
+      "createdAt": "2025-03-31T18:41:37.902Z",
+      "updatedAt": "2025-03-31T18:41:37.903Z"
+    },
+    {
+      "id": "marker_1743446814687_619",
+      "title": "Перекресток с помехой у апэканал",
+      "speechText": "Помеха справа",
+      "imageUrl": "/images/markers/7.png",
+      "position": {
+        "lat": 48.18173937548462,
+        "lng": 27.29536056518555
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 7,
+      "createdAt": "2025-03-31T18:46:54.687Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743446915995_42",
+      "title": "Перекресток с помехой справа На Купчя",
+      "speechText": "Помеха справа",
+      "imageUrl": "/images/markers/7.png",
+      "position": {
+        "lat": 48.17960797228987,
+        "lng": 27.298021316528324
+      },
+      "routeIds": [
+        "route-1",
+        "route-4",
+        "route-10",
+        "route-8"
+      ],
+      "sequence": 10,
+      "createdAt": "2025-03-31T18:48:35.995Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447029255_489",
+      "title": "Перекресток Помеха справа 1 на флорар верхней",
+      "speechText": "Помеха справа",
+      "imageUrl": "/images/markers/7.png",
+      "position": {
+        "lat": 48.179035768424285,
+        "lng": 27.301261425018314
+      },
+      "routeIds": [
+        "route-6",
+        "route-1",
+        "route-5"
+      ],
+      "sequence": 15,
+      "createdAt": "2025-03-31T18:50:29.255Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447048956_961",
+      "title": "Перекресток Помеха справа 2 на флорар верхней",
+      "speechText": "Помеха справа",
+      "imageUrl": "/images/markers/7.png",
+      "position": {
+        "lat": 48.177633841961686,
+        "lng": 27.299759387969974
+      },
+      "routeIds": [
+        "route-6",
+        "route-1",
+        "route-5"
+      ],
+      "sequence": 16,
+      "createdAt": "2025-03-31T18:50:48.956Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447110534_112",
+      "title": "Поворот налево На флорал с Буковины",
+      "speechText": "Поворот налево. Велодорожка справа",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.179550752190735,
+        "lng": 27.30186223983765
+      },
+      "routeIds": [
+        "route-6",
+        "route-1",
+        "route-5"
+      ],
+      "sequence": 14,
+      "createdAt": "2025-03-31T18:51:50.535Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447353736_986",
+      "title": "Поворот налево, на Достоевского. Первый поворот у 1 маршрута",
+      "speechText": "Поворот налево",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.17151332991917,
+        "lng": 27.285516858100895
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 1,
+      "createdAt": "2025-03-31T18:55:53.736Z",
+      "updatedAt": "2025-03-31T19:46:06.022Z"
+    },
+    {
+      "id": "marker_1743447418372_748",
+      "title": "Поворот налево к школе",
+      "speechText": "Поворот налево, Пропусти справа",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.173573761791964,
+        "lng": 27.288923263549805
+      },
+      "routeIds": [
+        "route-1",
+        "route-8"
+      ],
+      "sequence": 2,
+      "createdAt": "2025-03-31T18:56:58.372Z",
+      "updatedAt": "2025-03-31T19:46:06.022Z"
+    },
+    {
+      "id": "marker_1743447452213_6",
+      "title": "Поворот направо, после школы",
+      "speechText": "Поворот направо",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.17432128144501,
+        "lng": 27.288048863410953
+      },
+      "routeIds": [
+        "route-1",
+        "route-8"
+      ],
+      "sequence": 4,
+      "createdAt": "2025-03-31T18:57:32.213Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447861333_157",
+      "title": "1 маршрут Поворот налево наверх по Индепенденции",
+      "speechText": "Поворот налево",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.177583971838445,
+        "lng": 27.294749021530155
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 5,
+      "createdAt": "2025-03-31T19:04:21.333Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743447957613_774",
+      "title": "На Круге второй съезд Яблоко",
+      "speechText": "На круге Второй съезд",
+      "imageUrl": "/images/markers/roundabout.png",
+      "position": {
+        "lat": 48.16425634873659,
+        "lng": 27.31496020109284
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 13,
+      "createdAt": "2025-03-31T19:05:57.613Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743448051652_441",
+      "title": "Пешеходный перед яблоком",
+      "speechText": "Пешеходный, включаем левый до него, перестраиваемся после",
+      "imageUrl": "/images/markers/crosswalk.png",
+      "position": {
+        "lat": 48.16438370800713,
+        "lng": 27.314306715879983
+      },
+      "routeIds": [
+        "route-1",
+        "route-4",
+        "route-6",
+        "route-7",
+        "route-9",
+        "route-10"
+      ],
+      "sequence": 12,
+      "createdAt": "2025-03-31T19:07:31.652Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743448255629_878",
+      "title": "Третий съезд назад в город Яблоко",
+      "speechText": "Третий съезд назад в город",
+      "imageUrl": "/images/markers/roundabout.png",
+      "position": {
+        "lat": 48.16426207911481,
+        "lng": 27.314939717207494
+      },
+      "routeIds": [
+        "route-10",
+        "route-4",
+        "route-7",
+        "route-9"
+      ],
+      "sequence": 0,
+      "createdAt": "2025-03-31T19:10:55.629Z",
+      "updatedAt": "2025-03-31T19:10:55.629Z"
+    },
+    {
+      "id": "marker_1743448446795_473",
+      "title": "Поворот направо 1,5,6 на индепенденцию с верхней Флорар",
+      "speechText": "Поворот направо",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.17543058729701,
+        "lng": 27.297205924987797
+      },
+      "routeIds": [
+        "route-6",
+        "route-1",
+        "route-5"
+      ],
+      "sequence": 17,
+      "createdAt": "2025-03-31T19:14:06.795Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743448534649_430",
+      "title": "1 маршрут Поворот направо, наверх к паспортному",
+      "speechText": "Поворот направо",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.179929684259655,
+        "lng": 27.292453050613407
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 6,
+      "createdAt": "2025-03-31T19:15:34.649Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743448595338_248",
+      "title": "Поворот направо у больницы",
+      "speechText": "Поворот направо, аккуратно переходный",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.18255457116668,
+        "lng": 27.297248840332035
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 8,
+      "createdAt": "2025-03-31T19:16:35.338Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743448700877_991",
+      "title": "1 маршрут. Поворот направо с Буковины на Купчя",
+      "speechText": "Поворот направо, Велодожка Аккуратно",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.18139591831214,
+        "lng": 27.299576997756958
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 9,
+      "createdAt": "2025-03-31T19:18:20.877Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743449381097_793",
+      "title": "1 маршрут Поворот налево на индепенденцию к яблоку",
+      "speechText": "Поворот налево",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.17689713631883,
+        "lng": 27.295542955398563
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 11,
+      "createdAt": "2025-03-31T19:29:41.097Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743449448638_726",
+      "title": "1 маршрут конец Поворот налево к школе",
+      "speechText": "Поворот налево к школе",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.177569579659334,
+        "lng": 27.29484021663666
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 18,
+      "createdAt": "2025-03-31T19:30:48.638Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743449500884_620",
+      "title": "1 мар. Конец. поворот направо объездная",
+      "speechText": "Поворот направо",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.17545193231351,
+        "lng": 27.29037702083588
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 19,
+      "createdAt": "2025-03-31T19:31:40.884Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
+    },
+    {
+      "id": "marker_1743449559486_129",
+      "title": "Поворот налево на объездную",
+      "speechText": "Поворот налево, всех пропускаем",
+      "imageUrl": "/images/markers/17.png",
+      "position": {
+        "lat": 48.182080027744654,
+        "lng": 27.282577157020572
+      },
+      "routeIds": [
+        "route-1"
+      ],
+      "sequence": 20,
+      "createdAt": "2025-03-31T19:32:39.486Z",
+      "updatedAt": "2025-03-31T19:46:06.023Z"
     }
   ]
 }
