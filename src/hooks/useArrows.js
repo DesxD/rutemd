@@ -92,7 +92,7 @@ export default function useArrows() {
     const points = polyline.getLatLngs();
     
     // Устанавливаем фиксированную, небольшую частоту для стрелок
-    const arrowFrequency = 100; // в метрах
+    const arrowFrequency = 1000; // в метрах
     
     // Проходим по всем сегментам маршрута
     for (let i = 0; i < points.length - 1; i++) {

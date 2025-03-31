@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@turf/turf": "^7.2.0",
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.0.4",
     "leaflet": "^1.9.4",
+    "leaflet-polylinedecorator": "^1.6.0",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dnd": "^16.0.1",

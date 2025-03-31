@@ -17,3 +17,41 @@ body, html {
   width: 100%;
   height: 100%;
 }
+
+
+
+
+/* Поместите это в ваш глобальный CSS или подключите соответствующим образом */
+.custom-arrow-container {
+  background: none !important;
+  border: none !important;
+  /* z-index может быть не нужен или требовать корректировки */
+  /* z-index: 800 !important; */
+}
+
+.custom-arrow {
+  font-size: 20px;
+  font-weight: bold;
+  color: #FF0000; /* Убедитесь, что цвет задан здесь или в коде */
+  /* Улучшенная тень для лучшей видимости на любом фоне */
+  text-shadow:
+    2px 2px 0 white,
+    -2px -2px 0 white,
+    2px -2px 0 white,
+    -2px 2px 0 white,
+    0 2px 0 white,
+    2px 0 0 white,
+    0 -2px 0 white,
+    -2px 0 0 white;
+  transform-origin: center center;
+  position: absolute;
+  top: 0 !important; /* Важно для позиционирования внутри divIcon */
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Чтобы не мешали кликам по карте */
+  /* transform: rotate(...) БОЛЬШЕ НЕ НУЖЕН ЗДЕСЬ, декоратор сделает это сам */
+}
