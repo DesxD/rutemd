@@ -5,12 +5,11 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, ZoomControl, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, ZoomControl, useMapEvents, useMap } from 'react-leaflet';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import 'leaflet/dist/leaflet.css';
 import '../../styles/map/map.css';
-import ChangeMapView from './ChangeMapView';
 import RoutePolylines from './RoutePolylines';
 import DirectionalLocationMarker from './DirectionalLocationMarker';
 import LocationControl from './LocationControl';
@@ -20,6 +19,59 @@ import AudioNavigation from './AudioNavigation';
 import { CITY_CENTERS } from '../../constants/mapConstants';
 import useGeolocation from '../../hooks/useGeolocation';
 import useRouteProximity from '../../hooks/useRouteProximity';
+
+// Новый компонент для внутреннего управления картой
+// Заменяет ChangeMapView и часть функционала из других компонентов
+function MapController({ 
+  center, 
+  isLocationActive, 
+  isFollowActive,
+  userPosition,
+  currentCity
+}) {
+  const map = useMap();
+  const initialZoomSet = useRef(false);
+  const currentZoom = useRef(map.getZoom());
+  
+  // Запоминаем текущий зум при его изменении пользователем
+  useMapEvents({
+    zoomend: () => {
+      currentZoom.current = map.getZoom();
+    }
+  });
+  
+  // Устанавливаем начальные координаты для города при монтировании
+  useEffect(() => {
+    if (!initialZoomSet.current) {
+      map.setView(center, map.getZoom());
+      initialZoomSet.current = true;
+    }
+  }, []);
+  
+  // Обрабатываем изменение города
+  useEffect(() => {
+    if (!isLocationActive) {
+      // Только если геолокация неактивна, меняем вид на новый город
+      const cityCenter = CITY_CENTERS[currentCity]?.center || center;
+      // Используем текущий зум
+      map.setView(cityCenter, currentZoom.current);
+    }
+  }, [currentCity, isLocationActive]);
+  
+  // Управляем следованием за пользователем
+  useEffect(() => {
+    if (isFollowActive && userPosition) {
+      // При активном следовании центрируемся на пользователе, сохраняя текущий зум
+      map.setView(
+        [userPosition.latitude, userPosition.longitude], 
+        currentZoom.current, 
+        { animate: true }
+      );
+    }
+  }, [isFollowActive, userPosition]);
+  
+  return null;
+}
 
 // Компонент для обработки событий карты и режима размещения маркеров
 function MapEvents({ 
@@ -71,31 +123,27 @@ function MapComponent({
   onToggleMarkerPlacement
 }) {
   const { t } = useTranslation();
-  // Получаем координаты центра и масштаб для выбранного города
-  const { center, zoom } = CITY_CENTERS[currentCity] || CITY_CENTERS.edinet;
+  // Получаем координаты центра для выбранного города
+  const { center } = CITY_CENTERS[currentCity] || CITY_CENTERS.edinet;
   const mapRef = useRef(null);
   
   // Состояния для управления геолокацией и навигацией
   const [isLocationActive, setIsLocationActive] = useState(false);
   const [isFollowActive, setIsFollowActive] = useState(false);
-  const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
-  const [lastUserCenter, setLastUserCenter] = useState(null);
-  const [currentViewCenter, setCurrentViewCenter] = useState(center);
-  const [currentViewZoom, setCurrentViewZoom] = useState(zoom);
   
-  // Состояния для управления маркерами (форма и позиция нового маркера)
+  // Состояния для управления маркерами
   const [showMarkerForm, setShowMarkerForm] = useState(false);
   const [newMarkerPosition, setNewMarkerPosition] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [isEditingMarker, setIsEditingMarker] = useState(false);
   
- // Эффект для сброса состояний при изменении режима размещения маркеров
- useEffect(() => {
-	// Сбрасываем состояния только при выключении режима и если не показываем форму
-	if (!isMarkerPlacementMode && !showMarkerForm) {
-		setNewMarkerPosition(null);
-	}
-}, [isMarkerPlacementMode, showMarkerForm]);
+  // Эффект для сброса состояний при изменении режима размещения маркеров
+  useEffect(() => {
+    // Сбрасываем состояния только при выключении режима и если не показываем форму
+    if (!isMarkerPlacementMode && !showMarkerForm) {
+      setNewMarkerPosition(null);
+    }
+  }, [isMarkerPlacementMode, showMarkerForm]);
   
   // Получаем данные геолокации
   const { 
@@ -112,76 +160,40 @@ function MapComponent({
     { proximityThreshold: 100 }
   );
   
-  // Обновляем последний центр при изменении положения пользователя
-  useEffect(() => {
-    if (position) {
-      setLastUserCenter([position.latitude, position.longitude]);
-      
-      // Если активен режим следования, обновляем центр просмотра
-      if (isFollowActive && !userInteractedWithMap) {
-        setCurrentViewCenter([position.latitude, position.longitude]);
-        setCurrentViewZoom(16);
-      }
-    }
-  }, [position, isFollowActive, userInteractedWithMap]);
-  
-  // Обработчик смены города
-  useEffect(() => {
-    // Обновляем центр только если геолокация неактивна или пользователь не на карте
-    if (!isLocationActive || !lastUserCenter) {
-      setCurrentViewCenter(center);
-      setCurrentViewZoom(zoom);
-    }
-  }, [currentCity, center, zoom, isLocationActive, lastUserCenter]);
-  
   // Обработчик включения/выключения геолокации
   const handleToggleLocation = () => {
     if (isLocationActive) {
       stopWatching();
       setIsLocationActive(false);
       setIsFollowActive(false);
-      // Не меняем центр при выключении геолокации - оставляем последнюю позицию
     } else {
       startWatching();
       setIsLocationActive(true);
-      setIsFollowActive(true);
-      setUserInteractedWithMap(false);
+      // НЕ включаем автоматическое следование при активации геолокации
     }
   };
   
   // Обработчик включения/выключения следования за пользователем
   const handleToggleFollow = () => {
-    if (!isFollowActive) {
-      setIsFollowActive(true);
-      setUserInteractedWithMap(false);
-      
-      // Если есть позиция пользователя, сразу центрируем на ней
-      if (position) {
-        setCurrentViewCenter([position.latitude, position.longitude]);
-        setCurrentViewZoom(16);
-      }
-    } else {
-      setIsFollowActive(false);
-    }
+    setIsFollowActive(!isFollowActive);
   };
   
   // Обработчик взаимодействия пользователя с картой
   const handleUserMapInteraction = () => {
     if (isFollowActive) {
-      setUserInteractedWithMap(true);
       setIsFollowActive(false);
     }
   };
   
-// Обработчик размещения маркера на карте
-const handleMarkerPlace = (position) => {
-	setNewMarkerPosition(position);
-	setShowMarkerForm(true);
-	// Выключаем режим размещения маркера
-	if (typeof onToggleMarkerPlacement === 'function') {
-		onToggleMarkerPlacement(false);
-	}
-};
+  // Обработчик размещения маркера на карте
+  const handleMarkerPlace = (position) => {
+    setNewMarkerPosition(position);
+    setShowMarkerForm(true);
+    // Выключаем режим размещения маркера
+    if (typeof onToggleMarkerPlacement === 'function') {
+      onToggleMarkerPlacement(false);
+    }
+  };
   
   // Обработчик закрытия формы маркера
   const handleCloseMarkerForm = () => {
@@ -198,27 +210,22 @@ const handleMarkerPlace = (position) => {
     setShowMarkerForm(true);
   };
   
-  // Определяем текущий центр и масштаб для карты
-  const effectiveCenter = isLocationActive && lastUserCenter && !isFollowActive
-    ? lastUserCenter
-    : isFollowActive && position && !userInteractedWithMap
-      ? [position.latitude, position.longitude]
-      : currentViewCenter;
-      
-  const effectiveZoom = isFollowActive && !userInteractedWithMap ? 16 : currentViewZoom;
-  
   return (
     <div className={`map-container ${isMarkerPlacementMode ? 'marker-placement-mode' : ''}`}>
       <MapContainer 
         ref={mapRef}
-        center={effectiveCenter} 
-        zoom={effectiveZoom} 
+        center={center} 
+        zoom={14} 
         scrollWheelZoom={true} 
         zoomControl={false}
       >
-        <ChangeMapView 
-          center={effectiveCenter} 
-          zoom={effectiveZoom} 
+        {/* Новый контроллер для управления картой */}
+        <MapController 
+          center={center}
+          isLocationActive={isLocationActive}
+          isFollowActive={isFollowActive}
+          userPosition={position}
+          currentCity={currentCity}
         />
         
         <MapEvents 
@@ -250,11 +257,11 @@ const handleMarkerPlace = (position) => {
           onMarkerClick={handleMarkerClick}
         />
         
-        {/* Показываем местоположение пользователя с индикатором направления */}
+        {/* Показываем местоположение пользователя без автоматического центрирования */}
         {position && isLocationActive && (
           <DirectionalLocationMarker 
             position={position} 
-            followUser={isFollowActive && !userInteractedWithMap}
+            // Убираем свойство followUser - теперь следование управляется в MapController
           />
         )}
         
@@ -276,8 +283,6 @@ const handleMarkerPlace = (position) => {
         onToggleFollow={handleToggleFollow}
         isFollowActive={isFollowActive}
       />
-      
-      {/* Удаляем контрол для управления маркерами, так как теперь он в сайдбаре */}
       
       {/* Форма для создания/редактирования маркера */}
       {showMarkerForm && (

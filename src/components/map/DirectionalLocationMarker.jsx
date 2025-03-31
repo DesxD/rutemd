@@ -1,24 +1,16 @@
 /**
  * Компонент маркера местоположения с уменьшенной SVG-стрелкой направления
  * Продакшн-версия для использования в приложении
+ * Обновлен: убрано автоматическое центрирование карты
  */
 
-import { Marker, Circle, useMap } from 'react-leaflet';
+import { Marker, Circle } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import PropTypes from 'prop-types';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import '../../styles/map/DirectionalLocationMarker.css';
 
-function DirectionalLocationMarker({ position, followUser }) {
-  const map = useMap();
-  
-  // Центрируем карту на пользователе, если включен режим следования
-  useEffect(() => {
-    if (position && followUser) {
-      map.setView([position.latitude, position.longitude], map.getZoom());
-    }
-  }, [position, followUser, map]);
-  
+function DirectionalLocationMarker({ position }) {
   // Создаем пользовательскую иконку с SVG индикатором направления
   const directionIcon = useMemo(() => {
     if (!position) return null;
@@ -92,12 +84,7 @@ DirectionalLocationMarker.propTypes = {
     heading: PropTypes.number,
     speed: PropTypes.number,
     timestamp: PropTypes.number
-  }),
-  followUser: PropTypes.bool
-};
-
-DirectionalLocationMarker.defaultProps = {
-  followUser: false
+  })
 };
 
 export default DirectionalLocationMarker;
