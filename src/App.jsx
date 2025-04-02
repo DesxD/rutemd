@@ -1,7 +1,7 @@
 /**
  * Главный компонент приложения
  * Управляет состоянием приложения и объединяет все компоненты
- * Обновлен для устранения цикла обновлений
+ * Обновлен для поддержки аудио-навигации
  */
 
 import { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ import Sidebar from './components/sidebar/Sidebar';
 import MenuButton from './components/ui/MenuButton';
 import useRoutes from './hooks/useRoutes';
 import { MarkersProvider } from './contexts/MarkersContext.jsx';
-import { AudioProvider } from './contexts/AudioContext.jsx';
+import { AudioProvider } from './contexts/AudioContext';
 
 function App() {
   const { t, i18n } = useTranslation();

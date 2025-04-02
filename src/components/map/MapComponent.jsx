@@ -2,6 +2,7 @@
  * Основной компонент карты
  * Объединяет все компоненты, связанные с картой, и управляет отображением маршрутов и местоположением
  * Добавлена поддержка маркеров и их размещения на карте
+ * Добавлена интеграция с аудио-навигацией
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -20,8 +21,7 @@ import { CITY_CENTERS } from '../../constants/mapConstants';
 import useGeolocation from '../../hooks/useGeolocation';
 import useRouteProximity from '../../hooks/useRouteProximity';
 
-// Новый компонент для внутреннего управления картой
-// Заменяет ChangeMapView и часть функционала из других компонентов
+// Компонент для внутреннего управления картой
 function MapController({ 
   center, 
   isLocationActive, 
@@ -219,7 +219,7 @@ function MapComponent({
         scrollWheelZoom={true} 
         zoomControl={false}
       >
-        {/* Новый контроллер для управления картой */}
+        {/* Контроллер для управления картой */}
         <MapController 
           center={center}
           isLocationActive={isLocationActive}
@@ -257,21 +257,19 @@ function MapComponent({
           onMarkerClick={handleMarkerClick}
         />
         
-        {/* Показываем местоположение пользователя без автоматического центрирования */}
+        {/* Показываем местоположение пользователя */}
         {position && isLocationActive && (
           <DirectionalLocationMarker 
             position={position} 
-            // Убираем свойство followUser - теперь следование управляется в MapController
           />
         )}
         
         {/* Компонент аудио-навигации */}
         {position && isLocationActive && selectedRoute && (
           <AudioNavigation 
-            nearestPoint={nearestPoint}
-            isOnRoute={isOnRoute}
-            selectedRoute={selectedRoute}
             userPosition={position}
+            selectedRoute={selectedRoute}
+            isOnRoute={isOnRoute}
           />
         )}
       </MapContainer>

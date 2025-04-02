@@ -1,18 +1,18 @@
 /**
  * Компонент боковой панели
- * Исправлен для корректного использования хука useMarkersContext
+ * Обновлен для поддержки аудио-функциональности
  */
 
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { useMarkersContext } from '../../contexts/MarkersContext'; // Добавьте импорт здесь
+import { useMarkersContext } from '../../contexts/MarkersContext';
+import { useAudioContext } from '../../contexts/AudioContext';
 import CitySelector from '../selectors/CitySelector';
 import RouteSelector from '../selectors/RouteSelector';
 import MarkerManager from '../markers/MarkerManager';
 import SequenceManager from '../sequences/SequenceManager';
 import MarkersImportExport from '../markers/MarkersImportExport';
-import { useAudioContext } from '../../contexts/AudioContext.jsx';
 import '../../styles/sidebar/Sidebar.css';
 
 function Sidebar({ 
@@ -27,10 +27,10 @@ function Sidebar({
   onToggleMarkerPlacement
 }) {
   const { t } = useTranslation();
+  const { applySequenceFromFile } = useMarkersContext();
   const { isAudioEnabled, toggleAudio } = useAudioContext();
-  const { applySequenceFromFile } = useMarkersContext(); // Используйте хук здесь, на верхнем уровне
   
-  // Добавляем состояния для управления модальными окнами
+  // Состояния для управления модальными окнами
   const [showMarkerManager, setShowMarkerManager] = useState(false);
   const [showSequenceManager, setShowSequenceManager] = useState(false);
   const [showImportExport, setShowImportExport] = useState(false);
@@ -93,6 +93,7 @@ function Sidebar({
         
         {/* Секция аудио-навигации */}
         <div className="sidebar-section audio-section">
+          <h3>{t('audio.title')}</h3>
           <label className="toggle-container">
             <input 
               type="checkbox" 
@@ -109,7 +110,7 @@ function Sidebar({
           </label>
         </div>
         
-        {/* Добавляем раздел управления маркерами */}
+        {/* Раздел управления маркерами */}
         <div className="sidebar-section markers-section">
           <h3>{t('markers.title')}</h3>
           <div className="marker-buttons">
@@ -142,7 +143,7 @@ function Sidebar({
           </div>
         </div>
         
-        {/* Новый раздел управления последовательностями */}
+        {/* Раздел управления последовательностями */}
         <div className="sidebar-section sequences-section">
           <h3>{t('sequences.title')}</h3>
           <div className="sequence-buttons">
@@ -159,7 +160,7 @@ function Sidebar({
             {selectedRoute && (
               <button 
                 className="btn-sequence btn-quick-load" 
-                onClick={handleQuickLoad} // Используем функцию, объявленную выше
+                onClick={handleQuickLoad}
                 title={t('sequences.quickLoad')}
               >
                 <span className="icon">⚡</span>

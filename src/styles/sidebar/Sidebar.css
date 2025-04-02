@@ -212,3 +212,116 @@
 .toggle-label {
   user-select: none;
 }
+
+/* Стили для секции аудио в боковой панели */
+.audio-section {
+  margin-bottom: 20px;
+  border-top: 1px solid #eee;
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.audio-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Стилизация аудио-переключателя */
+.audio-toggle {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+/* Улучшенный стиль для переключателя (toggle switch) */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4285f4;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4285f4;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Индикатор аудио-событий */
+.audio-event-indicator {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.audio-event-indicator.active {
+  opacity: 1;
+}
+
+/* Анимация пульсации для аудио-значка */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.audio-active .audio-icon {
+  animation: pulse 1s infinite;
+  color: #4285f4;
+}
