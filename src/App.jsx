@@ -2,6 +2,7 @@
  * Главный компонент приложения
  * Управляет состоянием приложения и объединяет все компоненты
  * Обновлен для поддержки аудио-навигации
+ * Добавлена поддержка скрытия маркеров
  */
 
 import { useEffect, useState } from 'react';
@@ -22,6 +23,9 @@ function App() {
   
   // Состояние режима размещения маркеров
   const [isMarkerPlacementMode, setIsMarkerPlacementMode] = useState(false);
+  
+  // Состояние отображения маркеров
+  const [showMarkers, setShowMarkers] = useState(true);
 
   const { 
     routes, 
@@ -47,6 +51,11 @@ function App() {
   // Обработчик переключения режима отображения маршрутов
   const toggleShowAllRoutes = () => {
     setShowAllRoutes(!showAllRoutes);
+  };
+
+  // Обработчик переключения режима отображения маркеров
+  const toggleShowMarkers = () => {
+    setShowMarkers(!showMarkers);
   };
 
   // Обработчик переключения режима размещения маркеров
@@ -79,6 +88,8 @@ function App() {
             showAllRoutes={showAllRoutes}
             onToggleShowAllRoutes={toggleShowAllRoutes}
             onToggleMarkerPlacement={toggleMarkerPlacement}
+            showMarkers={showMarkers}
+            onToggleShowMarkers={toggleShowMarkers}
           />
           
           <MapComponent 
@@ -89,6 +100,7 @@ function App() {
             showAllRoutes={showAllRoutes}
             isMarkerPlacementMode={isMarkerPlacementMode}
             onToggleMarkerPlacement={toggleMarkerPlacement}
+            showMarkers={showMarkers}
           />
         </div>
       </AudioProvider>

@@ -3,6 +3,7 @@
  * Объединяет все компоненты, связанные с картой, и управляет отображением маршрутов и местоположением
  * Добавлена поддержка маркеров и их размещения на карте
  * Добавлена интеграция с аудио-навигацией
+ * Добавлена поддержка скрытия маркеров
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -120,7 +121,8 @@ function MapComponent({
   onRouteSelect,
   showAllRoutes,
   isMarkerPlacementMode,
-  onToggleMarkerPlacement
+  onToggleMarkerPlacement,
+  showMarkers
 }) {
   const { t } = useTranslation();
   // Получаем координаты центра для выбранного города
@@ -249,13 +251,15 @@ function MapComponent({
           showAllRoutes={showAllRoutes}
         />
         
-        {/* Показываем маркеры на карте */}
-        <RouteMarkers 
-          selectedRoute={selectedRoute}
-          showAllRoutes={showAllRoutes}
-          isEditing={false}
-          onMarkerClick={handleMarkerClick}
-        />
+        {/* Показываем маркеры на карте только если showMarkers включено */}
+        {showMarkers && (
+          <RouteMarkers 
+            selectedRoute={selectedRoute}
+            showAllRoutes={showAllRoutes}
+            isEditing={false}
+            onMarkerClick={handleMarkerClick}
+          />
+        )}
         
         {/* Показываем местоположение пользователя */}
         {position && isLocationActive && (
@@ -321,11 +325,13 @@ MapComponent.propTypes = {
   onRouteSelect: PropTypes.func.isRequired,
   showAllRoutes: PropTypes.bool.isRequired,
   isMarkerPlacementMode: PropTypes.bool,
-  onToggleMarkerPlacement: PropTypes.func
+  onToggleMarkerPlacement: PropTypes.func,
+  showMarkers: PropTypes.bool
 };
 
 MapComponent.defaultProps = {
-  isMarkerPlacementMode: false
+  isMarkerPlacementMode: false,
+  showMarkers: true
 };
 
 export default MapComponent;

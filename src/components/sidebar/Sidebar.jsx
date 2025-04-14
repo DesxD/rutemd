@@ -1,6 +1,6 @@
 /**
  * Компонент боковой панели
- * Обновлен для поддержки аудио-функциональности
+ * Обновлен для поддержки аудио-функциональности и скрытия маркеров
  */
 
 import { useState } from 'react';
@@ -24,7 +24,9 @@ function Sidebar({
   isOpen,
   onToggleShowAllRoutes,
   showAllRoutes,
-  onToggleMarkerPlacement
+  onToggleMarkerPlacement,
+  showMarkers,
+  onToggleShowMarkers
 }) {
   const { t } = useTranslation();
   const { applySequenceFromFile } = useMarkersContext();
@@ -113,6 +115,19 @@ function Sidebar({
         {/* Раздел управления маркерами */}
         <div className="sidebar-section markers-section">
           <h3>{t('markers.title')}</h3>
+          
+          {/* Переключатель отображения маркеров */}
+          <label className="toggle-container">
+            <input 
+              type="checkbox" 
+              checked={showMarkers} 
+              onChange={onToggleShowMarkers}
+            />
+            <span className="toggle-label">
+              {showMarkers ? t('markers.show') : t('markers.hide')}
+            </span>
+          </label>
+          
           <div className="marker-buttons">
             <button 
               className="btn-marker" 
@@ -213,7 +228,9 @@ Sidebar.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onToggleShowAllRoutes: PropTypes.func.isRequired,
   showAllRoutes: PropTypes.bool.isRequired,
-  onToggleMarkerPlacement: PropTypes.func
+  onToggleMarkerPlacement: PropTypes.func,
+  showMarkers: PropTypes.bool.isRequired,
+  onToggleShowMarkers: PropTypes.func.isRequired
 };
 
 export default Sidebar;
